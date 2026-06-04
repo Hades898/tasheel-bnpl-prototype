@@ -13,13 +13,21 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "playwright": "^1.60.0",
     "typescript": "~6.0.3"
   },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "export:web": "expo export --platform web --output-dir dist",
+    "build": "npm run typecheck && npm run export:web",
+    "serve:dist": "python3 -m http.server 4173 --bind 127.0.0.1 --directory dist",
+    "postexport:web": "node scripts/patch-gh-pages-export.cjs",
+    "qa:browser": "node scripts/browser-qa.cjs",
+    "qa:capture": "node scripts/capture-evidence.cjs"
   },
   "private": true
 }

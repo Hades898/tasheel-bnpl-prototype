@@ -66,16 +66,18 @@ const steps: Step[] = [
 const stepIndex = Object.fromEntries(steps.map((step, index) => [step.key, index])) as Record<ScreenKey, number>;
 
 function FigmaScreen({ step, onNext }: { step: Step; onNext: () => void }) {
-  const renderedHeight = Math.round((390 / step.width) * step.height);
+  const imageScale = Math.min(390 / step.width, 848 / step.height);
+  const renderedWidth = Math.round(step.width * imageScale);
+  const renderedHeight = Math.round(step.height * imageScale);
 
   return (
     <View style={styles.phoneClip}>
       <ScrollView
         style={styles.screenScroll}
-        contentContainerStyle={[styles.screenContent, { minHeight: Math.max(848, renderedHeight) }]}
-        showsVerticalScrollIndicator={renderedHeight > 848}
+        contentContainerStyle={[styles.screenContent, { minHeight: 848 }]}
+        showsVerticalScrollIndicator={false}
       >
-        <Image source={step.source} style={{ width: 390, height: renderedHeight }} resizeMode="contain" />
+        <Image source={step.source} style={{ width: renderedWidth, height: renderedHeight }} resizeMode="contain" />
       </ScrollView>
       <Pressable accessibilityRole="button" accessibilityLabel="Next screen" onPress={onNext} style={styles.nextOverlay} />
     </View>
@@ -85,11 +87,13 @@ function FigmaScreen({ step, onNext }: { step: Step; onNext: () => void }) {
 export default function App() {
   const [screen, setScreen] = useState<ScreenKey>('checkout');
   const { height, width } = useWindowDimensions();
+  const compact = width < 880;
   const currentIndex = stepIndex[screen];
   const currentStep = steps[currentIndex];
   const complete = useMemo(() => Math.round(((currentIndex + 1) / steps.length) * 100), [currentIndex]);
   const horizontalRoom = width < 880 ? width - 40 : width - 520;
-  const phoneScale = Math.min(1, Math.max(0.54, Math.min((height - 72) / 848, horizontalRoom / 390)));
+  const verticalRoom = compact ? height - 312 : height - 72;
+  const phoneScale = Math.min(1, Math.max(compact ? 0.38 : 0.54, Math.min(verticalRoom / 848, horizontalRoom / 390)));
   const goNext = () => {
     if (currentStep.next) setScreen(currentStep.next);
   };
@@ -97,11 +101,11 @@ export default function App() {
   return (
     <SafeAreaView style={styles.page}>
       <StatusBar style="light" />
-      <View style={[styles.stage, width < 880 && styles.stageNarrow]}>
-        <View style={[styles.sidePanel, width < 880 && styles.sidePanelNarrow]}>
+      <View style={[styles.stage, compact && styles.stageNarrow]}>
+        <View style={[styles.sidePanel, compact && styles.sidePanelNarrow]}>
           <Text style={styles.brand}>TAS'HEEL BNPL</Text>
-          <Text style={styles.desktopTitle}>BNPL Figma-matched prototype</Text>
-          <Text style={styles.desktopCopy}>
+          <Text style={[styles.desktopTitle, compact && styles.desktopTitleCompact]}>BNPL Figma-matched prototype</Text>
+          <Text style={[styles.desktopCopy, compact && styles.desktopCopyCompact]}>
             Dedicated BNPL link. This prototype renders exported Figma frames from node 1747:80160 directly for pixel fidelity; it is intentionally separate from Flash Cash.
           </Text>
           <View style={styles.progressTrack}><View style={[styles.progressFillWide, { width: `${complete}%` }]} /></View>
@@ -124,7 +128,7 @@ export default function App() {
               <FigmaScreen step={currentStep} onNext={goNext} />
             </View>
           </View>
-          <Text style={styles.tapHint}>{currentStep.next ? 'Tap the phone to continue the Figma flow' : 'End of BNPL flow'}</Text>
+          {!compact && <Text style={styles.tapHint}>{currentStep.next ? 'Tap the phone to continue the Figma flow' : 'End of BNPL flow'}</Text>}
         </View>
       </View>
     </SafeAreaView>
@@ -139,10 +143,12 @@ const styles = StyleSheet.create({
   stage: { flex: 1, flexDirection: 'row', padding: 24, gap: 24 },
   stageNarrow: { flexDirection: 'column', padding: 16, gap: 14 },
   sidePanel: { width: 390, borderRadius: 28, backgroundColor: '#f7f8f7', padding: 24, gap: 14 },
-  sidePanelNarrow: { width: '100%', maxHeight: 250 },
+  sidePanelNarrow: { width: '100%', maxHeight: 282, padding: 24, gap: 10 },
   brand: { fontSize: 13, letterSpacing: 1.5, fontWeight: '900', color: green },
   desktopTitle: { fontSize: 31, lineHeight: 35, fontWeight: '900', color: '#0c1210' },
+  desktopTitleCompact: { fontSize: 28, lineHeight: 32 },
   desktopCopy: { fontSize: 14, lineHeight: 20, color: '#5e6965' },
+  desktopCopyCompact: { fontSize: 14, lineHeight: 19 },
   desktopMeta: { color: '#5e6965', fontSize: 12, fontWeight: '700' },
   progressTrack: { height: 8, borderRadius: 999, backgroundColor: '#dfe7e2', overflow: 'hidden' },
   progressFillWide: { height: 8, borderRadius: 999, backgroundColor: neon },
@@ -154,7 +160,7 @@ const styles = StyleSheet.create({
   stepName: { fontSize: 14, fontWeight: '800', color: '#0c1210' },
   stepFigma: { fontSize: 12, color: '#7b8580', marginTop: 2 },
   flex: { flex: 1, minWidth: 0 },
-  prototypeCanvas: { flex: 1, borderRadius: 28, backgroundColor: '#222222', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 12 },
+  prototypeCanvas: { flex: 1, minHeight: 0, borderRadius: 28, backgroundColor: '#222222', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', padding: 12 },
   phoneClip: { width: 390, height: 848, backgroundColor: '#ffffff', overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 40, shadowOffset: { width: 0, height: 20 } },
   screenScroll: { width: 390, height: 848, backgroundColor: '#ffffff' },
   screenContent: { width: 390, alignItems: 'center', backgroundColor: '#ffffff' },
