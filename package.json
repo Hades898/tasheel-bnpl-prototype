@@ -27,7 +27,8 @@
     "serve:dist": "python3 -m http.server 4173 --bind 127.0.0.1 --directory dist",
     "postexport:web": "node scripts/patch-gh-pages-export.cjs",
     "qa:browser": "node scripts/browser-qa.cjs",
-    "qa:capture": "node scripts/capture-evidence.cjs"
+    "qa:capture": "node scripts/capture-evidence.cjs",
+    "qa:in-app": "node scripts/in-app-qa.cjs"
   },
   "private": true
 }

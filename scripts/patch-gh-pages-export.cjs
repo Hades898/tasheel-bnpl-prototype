@@ -8,11 +8,15 @@ if (!fs.existsSync(index)) {
   console.error(`Missing ${index}. Run npm run export:web first.`);
   process.exit(1);
 }
+const projectBase = '/tasheel-bnpl-prototype';
 let html = fs.readFileSync(index, 'utf8');
 html = html
-  .replaceAll('href="/favicon.ico"', 'href="./favicon.ico"')
-  .replaceAll('src="/_expo/', 'src="./_expo/')
-  .replaceAll('href="/_expo/', 'href="./_expo/');
+  .replaceAll('href="/favicon.ico"', `href="${projectBase}/favicon.ico"`)
+  .replaceAll('href="./favicon.ico"', `href="${projectBase}/favicon.ico"`)
+  .replaceAll('src="/_expo/', `src="${projectBase}/_expo/`)
+  .replaceAll('src="./_expo/', `src="${projectBase}/_expo/`)
+  .replaceAll('href="/_expo/', `href="${projectBase}/_expo/`)
+  .replaceAll('href="./_expo/', `href="${projectBase}/_expo/`);
 fs.writeFileSync(index, html);
 fs.writeFileSync(notFound, html);
 
