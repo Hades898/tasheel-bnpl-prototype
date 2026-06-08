@@ -1,0 +1,1061 @@
+[
+  {
+    "vp": "mobile",
+    "route": "checkout/app-home",
+    "finalUrl": "checkout/app-home",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 320,
+        "clientH": 286,
+        "txt": "Your Next Payment\n4,250.00\nPay now\nJarir Store · due Apr 21\nMy Dues\nMy Purchases\nMy Insights"
+      },
+      "bottom": "Home\nFlash Cash\nBNPL\nProfile",
+      "txt": "Your Next Payment 4,250.00 Pay now Jarir Store · due Apr 21 My Dues My Purchases My Insights Active Purchases View More › اكسترا extra Extrastores Feb 5 Active 1 of 3 installments paid 450.00 /mo Next up View More › اكسترا extra Extrastores Tomorrow 343.12 ج Jarir Bookstore In 6 days · April 20th 250.50 noon Noon In 17",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/home?x=1",
+    "finalUrl": "checkout/app-home?x=1",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 320,
+        "clientH": 286,
+        "txt": "Your Next Payment\n4,250.00\nPay now\nJarir Store · due Apr 21\nMy Dues\nMy Purchases\nMy Insights"
+      },
+      "bottom": "Home\nFlash Cash\nBNPL\nProfile",
+      "txt": "Your Next Payment 4,250.00 Pay now Jarir Store · due Apr 21 My Dues My Purchases My Insights Active Purchases View More › اكسترا extra Extrastores Feb 5 Active 1 of 3 installments paid 450.00 /mo Next up View More › اكسترا extra Extrastores Tomorrow 343.12 ج Jarir Bookstore In 6 days · April 20th 250.50 noon Noon In 17",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "aliasOk": true,
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/detail",
+    "finalUrl": "checkout/detail",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 1020,
+        "clientH": 712,
+        "txt": "اكسترا\nextra\nActive\nExtrastores\n25th of April, 2026\n3,666.00\n1 Paid\n916.50\n3 Remaining\n2,750\nPayment"
+      },
+      "bottom": "Pay Next Installment",
+      "txt": "‹ اكسترا extra Active Extrastores 25th of April, 2026 3,666.00 1 Paid 916.50 3 Remaining 2,750 Payment Schedule Next May 15th 916.50 Due in 8 days June 15th 916.50 Due in 35 days July 15th 916.50 Due in 35 days August 15th 916.50 Due in 35 days Purchase Details Total Amount 3,666 Monthly Payment 916.50 Installments 4 I",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false,
+      "keyBottomOk": true
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/details?x=1",
+    "finalUrl": "checkout/detail?x=1",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 1020,
+        "clientH": 712,
+        "txt": "اكسترا\nextra\nActive\nExtrastores\n25th of April, 2026\n3,666.00\n1 Paid\n916.50\n3 Remaining\n2,750\nPayment"
+      },
+      "bottom": "Pay Next Installment",
+      "txt": "‹ اكسترا extra Active Extrastores 25th of April, 2026 3,666.00 1 Paid 916.50 3 Remaining 2,750 Payment Schedule Next May 15th 916.50 Due in 8 days June 15th 916.50 Due in 35 days July 15th 916.50 Due in 35 days August 15th 916.50 Due in 35 days Purchase Details Total Amount 3,666 Monthly Payment 916.50 Installments 4 I",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "aliasOk": true,
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/insights",
+    "finalUrl": "checkout/insights",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Spent in April\n4,300\nNov\nDec\nJan\nFeb\nMar\n4.3k\nApr\nTransactions\nCategories\nاكسترا\nextra\nExtrastores\nApr 15th · Paid\n600\nج",
+      "txt": "‹ Insights ⌄ April Spent in April 4,300 Nov Dec Jan Feb Mar 4.3k Apr Transactions Categories اكسترا extra Extrastores Apr 15th · Paid 600 ج Jarir Apr 20th · Paid 600 ج Jarir Apr 20th · Paid 600 noon Noon Apr 15th · Paid 600",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/purchases",
+    "finalUrl": "checkout/purchases",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 700,
+        "clientH": 636,
+        "txt": "اكسترا\nextra\nExtrastores\nSamsung Galaxy S26\nActive\n1 of 3 installments paid\n450.00\n/mo\nاكسترا\nextra\n"
+      },
+      "bottom": "اكسترا\nextra\nExtrastores\nAirPods Pro 3\nCompleted\n3 of 3 installments paid\n210.00\n/mo",
+      "txt": "‹ × My Purchases View all your purchases All Active Completed اكسترا extra Extrastores Samsung Galaxy S26 Active 1 of 3 installments paid 450.00 /mo اكسترا extra Extrastores Samsung Galaxy S26 Active 2 of 3 installments paid 450.00 /mo ج Jarir Bookstore MacBook Air M4 Active 1 of 2 installments paid 720.00 /mo noon Noo",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/dues",
+    "finalUrl": "checkout/dues",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Pay selected\n3,000",
+      "txt": "‹ 4 Dues Selected 1,800 Remaining 1,200 اكسترا extra Extra Stores In 2 days · April 20th 1,800 2 of 4 ج Jarir In 7 days · April 27th 600 2 of 4 اكسترا extra Jarir In 7 days · April 27th 600 2 of 4 اكسترا extra Jarir In 7 days · April 27th 600 2 of 4 +5 More next up payments View all › Pay selected 3,000",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "duesOk": true,
+      "hOverflow": false,
+      "keyBottomOk": true
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/plan",
+    "finalUrl": "checkout/plan",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "×\n🛒\n2 Items\n4,250\n›\nChoose your plan\nYou can split your purchase up to 4 months\n−\n2\nMonths\n3\n4\n+\n1,416.67\ntoday\nThen\n2,",
+      "txt": "× 🛒 2 Items 4,250 › Choose your plan You can split your purchase up to 4 months − 2 Months 3 4 + 1,416.67 today Then 2,000 / Month includes 55.30 in total fees Continue with plan",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/payment",
+    "finalUrl": "checkout/payment",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Face ID confirmation",
+      "txt": "× Your payment plan ◷ 1,416.25 today Then monthly from Jul 8 Pay in 3 Change Payment method Apple Pay Face ID to confirm Add new card Visa, Mastercard, Mada › The selected card will be used for repayments towards all active and future purchases · 1,416.25 Face ID confirmation",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/identity",
+    "finalUrl": "checkout/identity",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Confirm",
+      "txt": "× ✓ 2 Identity Verification 3 4 5 Identity Verification We need your National ID and date of birth for Yaqeen verification. National ID or Iqama number Date of Birth ⌾ Your data is verified through Yaqeen, Saudi Arabia's official identity platform. Confirm",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/nafath",
+    "finalUrl": "checkout/nafath",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Open Nafath App",
+      "txt": "نفاذ Verify via Nafath 88 How to use Nafath: 1 Click here to download or open the Nafath app 2 Register or login to your account 3 Approve the access 4 Select the number displayed above Open Nafath App",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/otp",
+    "finalUrl": "checkout/otp",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Confirm OTP",
+      "txt": "Enter the 4-digit code sent to you at +966 50 327 3456. Edit ⏱ 01:30 Didn't get it? Resend Confirm OTP",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/processing",
+    "finalUrl": "checkout/processing",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "🚀\nProcessing Purchase…\nPlease don't close or leave this page.",
+      "txt": "🚀 Processing Purchase… Please don't close or leave this page.",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "checkout/success",
+    "finalUrl": "checkout/success",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Opening Tasheel app (10s) ›",
+      "txt": "🎉 Purchase Successful! اكسترا extra Extrastores 4,250.00 Plan 3 Month x 1,416.25 First payment May 15th, 2026 Reference EXT-2026-78291 Download Tasheel app Manage installments, view statements, and pay anytime. Opening Tasheel app (10s) ›",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "bnpl",
+    "finalUrl": "bnpl",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Hello, Abdullah\nYou're 10% done paying off 4 purchases\n3,175\nPaid\n10,243\nLeft\nPay\nStatement\nMy Purchases\nActive plans\nvi",
+      "txt": "Hello, Abdullah You're 10% done paying off 4 purchases 3,175 Paid 10,243 Left Pay Statement My Purchases Active plans view all 50% Samsung 65QLED31A123 3 of 6 SAR 2,700/5,400 50% Macbook pro M4 3 of 6 SAR 2,700/5,400 50% Macbook Pro M4 6 of 12 SAR 2,700/5,400 50% Samsung S24 LTE 2TB SSD BLAA 3 of 6 SAR 2,700/5,400 Next",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "home",
+    "finalUrl": "home",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Good morning,\nAhmed\nTAS'HEEL\nfinance\nDue this month\n3,758.33\nLoan\n3,175.00\n30 Apr\nBNPL · Noon\n583.33\n1 May\nPay Loan · \n3",
+      "txt": "Home Good morning, Ahmed TAS'HEEL finance Due this month 3,758.33 Loan 3,175.00 30 Apr BNPL · Noon 583.33 1 May Pay Loan · 3,175.00 Due 30 Apr ACTIVE FINANCING Personal Loan Active 1/6 installments 3,175.00 Due 30 Apr › BNPL · Noon Active 1/6 installments 583.33 Due 1 May › Bigger Dreams? Get cash up to 250,000 Apply N",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "loans",
+    "finalUrl": "loans",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "TAS’HEEL\nfinance\nTop up your limit!\nPay on time to hit milestones. After 6 installments, unlock Top Up for more.\nTop Up\n",
+      "txt": "TAS’HEEL finance Top up your limit! Pay on time to hit milestones. After 6 installments, unlock Top Up for more. Top Up Loan Details View more › Total Payment 0.00 Loan Amount 38,100.00 Due Amount 3,175.00 Next payment 30/04/2026 Pay Now Bigger Dreams? Get cash up to 250,000 Apply Now",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "mobile",
+    "route": "settings",
+    "finalUrl": "settings",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Native controls unavailable\nSwiftUI Toggle, Picker, and Stepper render only in an iOS development build. Open this tab f",
+      "txt": "Settings Native controls unavailable SwiftUI Toggle, Picker, and Stepper render only in an iOS development build. Open this tab from a simulator dev client for the honest chrome. ABOUT S About Tasheel Build info · push transition ›",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/app-home",
+    "finalUrl": "checkout/app-home",
+    "errors": [],
+    "data": {
+      "scrollableCount": 2,
+      "mainScrollable": {
+        "scrollH": 722,
+        "clientH": 550,
+        "txt": "Your Next Payment\n4,250.00\nPay now\nJarir Store · due Apr 21\nMy Dues\nMy Purchases\nMy Insights\nActive "
+      },
+      "bottom": "Home\nFlash Cash\nBNPL\nProfile",
+      "txt": "Your Next Payment 4,250.00 Pay now Jarir Store · due Apr 21 My Dues My Purchases My Insights Active Purchases View More › اكسترا extra Extrastores Feb 5 Active 1 of 3 installments paid 450.00 /mo Next up View More › اكسترا extra Extrastores Tomorrow 343.12 ج Jarir Bookstore In 6 days · April 20th 250.50 noon Noon In 17",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/home?x=1",
+    "finalUrl": "checkout/app-home?x=1",
+    "errors": [],
+    "data": {
+      "scrollableCount": 2,
+      "mainScrollable": {
+        "scrollH": 722,
+        "clientH": 550,
+        "txt": "Your Next Payment\n4,250.00\nPay now\nJarir Store · due Apr 21\nMy Dues\nMy Purchases\nMy Insights\nActive "
+      },
+      "bottom": "Home\nFlash Cash\nBNPL\nProfile",
+      "txt": "Your Next Payment 4,250.00 Pay now Jarir Store · due Apr 21 My Dues My Purchases My Insights Active Purchases View More › اكسترا extra Extrastores Feb 5 Active 1 of 3 installments paid 450.00 /mo Next up View More › اكسترا extra Extrastores Tomorrow 343.12 ج Jarir Bookstore In 6 days · April 20th 250.50 noon Noon In 17",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "aliasOk": true,
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/detail",
+    "finalUrl": "checkout/detail",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 1020,
+        "clientH": 508,
+        "txt": "اكسترا\nextra\nActive\nExtrastores\n25th of April, 2026\n3,666.00\n1 Paid\n916.50\n3 Remaining\n2,750\nPayment"
+      },
+      "bottom": "Pay Next Installment",
+      "txt": "‹ اكسترا extra Active Extrastores 25th of April, 2026 3,666.00 1 Paid 916.50 3 Remaining 2,750 Payment Schedule Next May 15th 916.50 Due in 8 days June 15th 916.50 Due in 35 days July 15th 916.50 Due in 35 days August 15th 916.50 Due in 35 days Purchase Details Total Amount 3,666 Monthly Payment 916.50 Installments 4 I",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false,
+      "keyBottomOk": true
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/details?x=1",
+    "finalUrl": "checkout/detail?x=1",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 1020,
+        "clientH": 508,
+        "txt": "اكسترا\nextra\nActive\nExtrastores\n25th of April, 2026\n3,666.00\n1 Paid\n916.50\n3 Remaining\n2,750\nPayment"
+      },
+      "bottom": "Pay Next Installment",
+      "txt": "‹ اكسترا extra Active Extrastores 25th of April, 2026 3,666.00 1 Paid 916.50 3 Remaining 2,750 Payment Schedule Next May 15th 916.50 Due in 8 days June 15th 916.50 Due in 35 days July 15th 916.50 Due in 35 days August 15th 916.50 Due in 35 days Purchase Details Total Amount 3,666 Monthly Payment 916.50 Installments 4 I",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "aliasOk": true,
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/insights",
+    "finalUrl": "checkout/insights",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 665,
+        "clientH": 568,
+        "txt": "Spent in April\n4,300\nNov\nDec\nJan\nFeb\nMar\n4.3k\nApr\nTransactions\nCategories\nاكسترا\nextra\nExtrastores\nA"
+      },
+      "bottom": "noon\nNoon\nApr 15th · Paid\n600",
+      "txt": "‹ Insights ⌄ April Spent in April 4,300 Nov Dec Jan Feb Mar 4.3k Apr Transactions Categories اكسترا extra Extrastores Apr 15th · Paid 600 ج Jarir Apr 20th · Paid 600 ج Jarir Apr 20th · Paid 600 noon Noon Apr 15th · Paid 600",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/purchases",
+    "finalUrl": "checkout/purchases",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 700,
+        "clientH": 432,
+        "txt": "اكسترا\nextra\nExtrastores\nSamsung Galaxy S26\nActive\n1 of 3 installments paid\n450.00\n/mo\nاكسترا\nextra\n"
+      },
+      "bottom": "اكسترا\nextra\nExtrastores\nAirPods Pro 3\nCompleted\n3 of 3 installments paid\n210.00\n/mo",
+      "txt": "‹ × My Purchases View all your purchases All Active Completed اكسترا extra Extrastores Samsung Galaxy S26 Active 1 of 3 installments paid 450.00 /mo اكسترا extra Extrastores Samsung Galaxy S26 Active 2 of 3 installments paid 450.00 /mo ج Jarir Bookstore MacBook Air M4 Active 1 of 2 installments paid 720.00 /mo noon Noo",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/dues",
+    "finalUrl": "checkout/dues",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 633,
+        "clientH": 508,
+        "txt": "4 Dues Selected\n1,800\nRemaining 1,200\nاكسترا\nextra\nExtra Stores\nIn 2 days  ·  April 20th\n1,800\n2 of "
+      },
+      "bottom": "Pay selected\n3,000",
+      "txt": "‹ 4 Dues Selected 1,800 Remaining 1,200 اكسترا extra Extra Stores In 2 days · April 20th 1,800 2 of 4 ج Jarir In 7 days · April 27th 600 2 of 4 اكسترا extra Jarir In 7 days · April 27th 600 2 of 4 اكسترا extra Jarir In 7 days · April 27th 600 2 of 4 +5 More next up payments View all › Pay selected 3,000",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "duesOk": true,
+      "hOverflow": false,
+      "keyBottomOk": true
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/plan",
+    "finalUrl": "checkout/plan",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 679,
+        "clientH": 640,
+        "txt": "×\n🛒\n2 Items\n4,250\n›\nChoose your plan\nYou can split your purchase up to 4 months\n−\n2\nMonths\n3\n4\n+\n1,"
+      },
+      "bottom": "×\n🛒\n2 Items\n4,250\n›\nChoose your plan\nYou can split your purchase up to 4 months\n−\n2\nMonths\n3\n4\n+\n1,416.67\ntoday\nThen\n2,",
+      "txt": "× 🛒 2 Items 4,250 › Choose your plan You can split your purchase up to 4 months − 2 Months 3 4 + 1,416.67 today Then 2,000 / Month includes 55.30 in total fees Continue with plan",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/payment",
+    "finalUrl": "checkout/payment",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 555,
+        "clientH": 538,
+        "txt": "×\nYour payment plan\n◷\n1,416.25\ntoday\nThen monthly from Jul 8\nPay in 3\nChange\nPayment method\nApple Pa"
+      },
+      "bottom": "Face ID confirmation",
+      "txt": "× Your payment plan ◷ 1,416.25 today Then monthly from Jul 8 Pay in 3 Change Payment method Apple Pay Face ID to confirm Add new card Visa, Mastercard, Mada › The selected card will be used for repayments towards all active and future purchases · 1,416.25 Face ID confirmation",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/identity",
+    "finalUrl": "checkout/identity",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Confirm",
+      "txt": "× ✓ 2 Identity Verification 3 4 5 Identity Verification We need your National ID and date of birth for Yaqeen verification. National ID or Iqama number Date of Birth ⌾ Your data is verified through Yaqeen, Saudi Arabia's official identity platform. Confirm",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/nafath",
+    "finalUrl": "checkout/nafath",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Open Nafath App",
+      "txt": "نفاذ Verify via Nafath 88 How to use Nafath: 1 Click here to download or open the Nafath app 2 Register or login to your account 3 Approve the access 4 Select the number displayed above Open Nafath App",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/otp",
+    "finalUrl": "checkout/otp",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Confirm OTP",
+      "txt": "Enter the 4-digit code sent to you at +966 50 327 3456. Edit ⏱ 01:30 Didn't get it? Resend Confirm OTP",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/processing",
+    "finalUrl": "checkout/processing",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "🚀\nProcessing Purchase…\nPlease don't close or leave this page.",
+      "txt": "🚀 Processing Purchase… Please don't close or leave this page.",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "checkout/success",
+    "finalUrl": "checkout/success",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Opening Tasheel app (10s) ›",
+      "txt": "🎉 Purchase Successful! اكسترا extra Extrastores 4,250.00 Plan 3 Month x 1,416.25 First payment May 15th, 2026 Reference EXT-2026-78291 Download Tasheel app Manage installments, view statements, and pay anytime. Opening Tasheel app (10s) ›",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "bnpl",
+    "finalUrl": "bnpl",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 667,
+        "clientH": 640,
+        "txt": "Hello, Abdullah\nYou're 10% done paying off 4 purchases\n3,175\nPaid\n10,243\nLeft\nPay\nStatement\nMy Purch"
+      },
+      "bottom": "Hello, Abdullah\nYou're 10% done paying off 4 purchases\n3,175\nPaid\n10,243\nLeft\nPay\nStatement\nMy Purchases\nActive plans\nvi",
+      "txt": "Hello, Abdullah You're 10% done paying off 4 purchases 3,175 Paid 10,243 Left Pay Statement My Purchases Active plans view all 50% Samsung 65QLED31A123 3 of 6 SAR 2,700/5,400 50% Macbook pro M4 3 of 6 SAR 2,700/5,400 50% Macbook Pro M4 6 of 12 SAR 2,700/5,400 50% Samsung S24 LTE 2TB SSD BLAA 3 of 6 SAR 2,700/5,400 Next",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "home",
+    "finalUrl": "home",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 760,
+        "clientH": 576,
+        "txt": "Good morning,\nAhmed\nTAS'HEEL\nfinance\nDue this month\n3,758.33\nLoan\n3,175.00\n30 Apr\nBNPL · Noon\n583.33"
+      },
+      "bottom": "Good morning,\nAhmed\nTAS'HEEL\nfinance\nDue this month\n3,758.33\nLoan\n3,175.00\n30 Apr\nBNPL · Noon\n583.33\n1 May\nPay Loan · \n3",
+      "txt": "Home Good morning, Ahmed TAS'HEEL finance Due this month 3,758.33 Loan 3,175.00 30 Apr BNPL · Noon 583.33 1 May Pay Loan · 3,175.00 Due 30 Apr ACTIVE FINANCING Personal Loan Active 1/6 installments 3,175.00 Due 30 Apr › BNPL · Noon Active 1/6 installments 583.33 Due 1 May › Bigger Dreams? Get cash up to 250,000 Apply N",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "loans",
+    "finalUrl": "loans",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "TAS’HEEL\nfinance\nTop up your limit!\nPay on time to hit milestones. After 6 installments, unlock Top Up for more.\nTop Up\n",
+      "txt": "TAS’HEEL finance Top up your limit! Pay on time to hit milestones. After 6 installments, unlock Top Up for more. Top Up Loan Details View more › Total Payment 0.00 Loan Amount 38,100.00 Due Amount 3,175.00 Next payment 30/04/2026 Pay Now Bigger Dreams? Get cash up to 250,000 Apply Now",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "short",
+    "route": "settings",
+    "finalUrl": "settings",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Native controls unavailable\nSwiftUI Toggle, Picker, and Stepper render only in an iOS development build. Open this tab f",
+      "txt": "Settings Native controls unavailable SwiftUI Toggle, Picker, and Stepper render only in an iOS development build. Open this tab from a simulator dev client for the honest chrome. ABOUT S About Tasheel Build info · push transition ›",
+      "docW": 390,
+      "clientW": 390
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/app-home",
+    "finalUrl": "checkout/app-home",
+    "errors": [],
+    "data": {
+      "scrollableCount": 2,
+      "mainScrollable": {
+        "scrollH": 722,
+        "clientH": 630,
+        "txt": "Your Next Payment\n4,250.00\nPay now\nJarir Store · due Apr 21\nMy Dues\nMy Purchases\nMy Insights\nActive "
+      },
+      "bottom": "Home\nFlash Cash\nBNPL\nProfile",
+      "txt": "Your Next Payment 4,250.00 Pay now Jarir Store · due Apr 21 My Dues My Purchases My Insights Active Purchases View More › اكسترا extra Extrastores Feb 5 Active 1 of 3 installments paid 450.00 /mo Next up View More › اكسترا extra Extrastores Tomorrow 343.12 ج Jarir Bookstore In 6 days · April 20th 250.50 noon Noon In 17",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/home?x=1",
+    "finalUrl": "checkout/app-home?x=1",
+    "errors": [],
+    "data": {
+      "scrollableCount": 2,
+      "mainScrollable": {
+        "scrollH": 722,
+        "clientH": 630,
+        "txt": "Your Next Payment\n4,250.00\nPay now\nJarir Store · due Apr 21\nMy Dues\nMy Purchases\nMy Insights\nActive "
+      },
+      "bottom": "Home\nFlash Cash\nBNPL\nProfile",
+      "txt": "Your Next Payment 4,250.00 Pay now Jarir Store · due Apr 21 My Dues My Purchases My Insights Active Purchases View More › اكسترا extra Extrastores Feb 5 Active 1 of 3 installments paid 450.00 /mo Next up View More › اكسترا extra Extrastores Tomorrow 343.12 ج Jarir Bookstore In 6 days · April 20th 250.50 noon Noon In 17",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "aliasOk": true,
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/detail",
+    "finalUrl": "checkout/detail",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 1020,
+        "clientH": 588,
+        "txt": "اكسترا\nextra\nActive\nExtrastores\n25th of April, 2026\n3,666.00\n1 Paid\n916.50\n3 Remaining\n2,750\nPayment"
+      },
+      "bottom": "Pay Next Installment",
+      "txt": "‹ اكسترا extra Active Extrastores 25th of April, 2026 3,666.00 1 Paid 916.50 3 Remaining 2,750 Payment Schedule Next May 15th 916.50 Due in 8 days June 15th 916.50 Due in 35 days July 15th 916.50 Due in 35 days August 15th 916.50 Due in 35 days Purchase Details Total Amount 3,666 Monthly Payment 916.50 Installments 4 I",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false,
+      "keyBottomOk": true
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/details?x=1",
+    "finalUrl": "checkout/detail?x=1",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 1020,
+        "clientH": 588,
+        "txt": "اكسترا\nextra\nActive\nExtrastores\n25th of April, 2026\n3,666.00\n1 Paid\n916.50\n3 Remaining\n2,750\nPayment"
+      },
+      "bottom": "Pay Next Installment",
+      "txt": "‹ اكسترا extra Active Extrastores 25th of April, 2026 3,666.00 1 Paid 916.50 3 Remaining 2,750 Payment Schedule Next May 15th 916.50 Due in 8 days June 15th 916.50 Due in 35 days July 15th 916.50 Due in 35 days August 15th 916.50 Due in 35 days Purchase Details Total Amount 3,666 Monthly Payment 916.50 Installments 4 I",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "aliasOk": true,
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/insights",
+    "finalUrl": "checkout/insights",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 665,
+        "clientH": 648,
+        "txt": "Spent in April\n4,300\nNov\nDec\nJan\nFeb\nMar\n4.3k\nApr\nTransactions\nCategories\nاكسترا\nextra\nExtrastores\nA"
+      },
+      "bottom": "noon\nNoon\nApr 15th · Paid\n600",
+      "txt": "‹ Insights ⌄ April Spent in April 4,300 Nov Dec Jan Feb Mar 4.3k Apr Transactions Categories اكسترا extra Extrastores Apr 15th · Paid 600 ج Jarir Apr 20th · Paid 600 ج Jarir Apr 20th · Paid 600 noon Noon Apr 15th · Paid 600",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/purchases",
+    "finalUrl": "checkout/purchases",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 700,
+        "clientH": 512,
+        "txt": "اكسترا\nextra\nExtrastores\nSamsung Galaxy S26\nActive\n1 of 3 installments paid\n450.00\n/mo\nاكسترا\nextra\n"
+      },
+      "bottom": "اكسترا\nextra\nExtrastores\nAirPods Pro 3\nCompleted\n3 of 3 installments paid\n210.00\n/mo",
+      "txt": "‹ × My Purchases View all your purchases All Active Completed اكسترا extra Extrastores Samsung Galaxy S26 Active 1 of 3 installments paid 450.00 /mo اكسترا extra Extrastores Samsung Galaxy S26 Active 2 of 3 installments paid 450.00 /mo ج Jarir Bookstore MacBook Air M4 Active 1 of 2 installments paid 720.00 /mo noon Noo",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/dues",
+    "finalUrl": "checkout/dues",
+    "errors": [],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 633,
+        "clientH": 588,
+        "txt": "4 Dues Selected\n1,800\nRemaining 1,200\nاكسترا\nextra\nExtra Stores\nIn 2 days  ·  April 20th\n1,800\n2 of "
+      },
+      "bottom": "Pay selected\n3,000",
+      "txt": "‹ 4 Dues Selected 1,800 Remaining 1,200 اكسترا extra Extra Stores In 2 days · April 20th 1,800 2 of 4 ج Jarir In 7 days · April 27th 600 2 of 4 اكسترا extra Jarir In 7 days · April 27th 600 2 of 4 اكسترا extra Jarir In 7 days · April 27th 600 2 of 4 +5 More next up payments View all › Pay selected 3,000",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "duesOk": true,
+      "hOverflow": false,
+      "keyBottomOk": true
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/plan",
+    "finalUrl": "checkout/plan",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "×\n🛒\n2 Items\n4,250\n›\nChoose your plan\nYou can split your purchase up to 4 months\n−\n2\nMonths\n3\n4\n+\n1,416.67\ntoday\nThen\n2,",
+      "txt": "× 🛒 2 Items 4,250 › Choose your plan You can split your purchase up to 4 months − 2 Months 3 4 + 1,416.67 today Then 2,000 / Month includes 55.30 in total fees Continue with plan",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/payment",
+    "finalUrl": "checkout/payment",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=text&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Face ID confirmation",
+      "txt": "× Your payment plan ◷ 1,416.25 today Then monthly from Jul 8 Pay in 3 Change Payment method Apple Pay Face ID to confirm Add new card Visa, Mastercard, Mada › The selected card will be used for repayments towards all active and future purchases · 1,416.25 Face ID confirmation",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/identity",
+    "finalUrl": "checkout/identity",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Confirm",
+      "txt": "× ✓ 2 Identity Verification 3 4 5 Identity Verification We need your National ID and date of birth for Yaqeen verification. National ID or Iqama number Date of Birth ⌾ Your data is verified through Yaqeen, Saudi Arabia's official identity platform. Confirm",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/nafath",
+    "finalUrl": "checkout/nafath",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Open Nafath App",
+      "txt": "نفاذ Verify via Nafath 88 How to use Nafath: 1 Click here to download or open the Nafath app 2 Register or login to your account 3 Approve the access 4 Select the number displayed above Open Nafath App",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/otp",
+    "finalUrl": "checkout/otp",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Confirm OTP",
+      "txt": "Enter the 4-digit code sent to you at +966 50 327 3456. Edit ⏱ 01:30 Didn't get it? Resend Confirm OTP",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/processing",
+    "finalUrl": "checkout/processing",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "🚀\nProcessing Purchase…\nPlease don't close or leave this page.",
+      "txt": "🚀 Processing Purchase… Please don't close or leave this page.",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "checkout/success",
+    "finalUrl": "checkout/success",
+    "errors": [],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Opening Tasheel app (10s) ›",
+      "txt": "🎉 Purchase Successful! اكسترا extra Extrastores 4,250.00 Plan 3 Month x 1,416.25 First payment May 15th, 2026 Reference EXT-2026-78291 Download Tasheel app Manage installments, view statements, and pay anytime. Opening Tasheel app (10s) ›",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "bnpl",
+    "finalUrl": "bnpl",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Hello, Abdullah\nYou're 10% done paying off 4 purchases\n3,175\nPaid\n10,243\nLeft\nPay\nStatement\nMy Purchases\nActive plans\nvi",
+      "txt": "Hello, Abdullah You're 10% done paying off 4 purchases 3,175 Paid 10,243 Left Pay Statement My Purchases Active plans view all 50% Samsung 65QLED31A123 3 of 6 SAR 2,700/5,400 50% Macbook pro M4 3 of 6 SAR 2,700/5,400 50% Macbook Pro M4 6 of 12 SAR 2,700/5,400 50% Samsung S24 LTE 2TB SSD BLAA 3 of 6 SAR 2,700/5,400 Next",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "home",
+    "finalUrl": "home",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 1,
+      "mainScrollable": {
+        "scrollH": 760,
+        "clientH": 656,
+        "txt": "Good morning,\nAhmed\nTAS'HEEL\nfinance\nDue this month\n3,758.33\nLoan\n3,175.00\n30 Apr\nBNPL · Noon\n583.33"
+      },
+      "bottom": "Good morning,\nAhmed\nTAS'HEEL\nfinance\nDue this month\n3,758.33\nLoan\n3,175.00\n30 Apr\nBNPL · Noon\n583.33\n1 May\nPay Loan · \n3",
+      "txt": "Home Good morning, Ahmed TAS'HEEL finance Due this month 3,758.33 Loan 3,175.00 30 Apr BNPL · Noon 583.33 1 May Pay Loan · 3,175.00 Due 30 Apr ACTIVE FINANCING Personal Loan Active 1/6 installments 3,175.00 Due 30 Apr › BNPL · Noon Active 1/6 installments 583.33 Due 1 May › Bigger Dreams? Get cash up to 250,000 Apply N",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "loans",
+    "finalUrl": "loans",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "TAS’HEEL\nfinance\nTop up your limit!\nPay on time to hit milestones. After 6 installments, unlock Top Up for more.\nTop Up\n",
+      "txt": "TAS’HEEL finance Top up your limit! Pay on time to hit milestones. After 6 installments, unlock Top Up for more. Top Up Loan Details View more › Total Payment 0.00 Loan Amount 38,100.00 Due Amount 3,175.00 Next payment 30/04/2026 Pay Now Bigger Dreams? Get cash up to 250,000 Apply Now",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  },
+  {
+    "vp": "desktop",
+    "route": "settings",
+    "finalUrl": "settings",
+    "errors": [
+      "Error: Minified React error #418; visit https://react.dev/errors/418?args[]=HTML&args[]= for the full message or use the non-minified dev environment for full errors and additional helpful warnings."
+    ],
+    "data": {
+      "scrollableCount": 0,
+      "mainScrollable": null,
+      "bottom": "Native controls unavailable\nSwiftUI Toggle, Picker, and Stepper render only in an iOS development build. Open this tab f",
+      "txt": "Settings Native controls unavailable SwiftUI Toggle, Picker, and Stepper render only in an iOS development build. Open this tab from a simulator dev client for the honest chrome. ABOUT S About Tasheel Build info · push transition ›",
+      "docW": 1280,
+      "clientW": 1280
+    },
+    "assertions": {
+      "hOverflow": false
+    }
+  }
+]
