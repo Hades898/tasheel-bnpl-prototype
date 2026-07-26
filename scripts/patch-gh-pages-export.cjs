@@ -11,6 +11,11 @@ if (!fs.existsSync(index)) {
 const projectBase = '/tasheel-bnpl-prototype';
 let html = fs.readFileSync(index, 'utf8');
 html = html
+  // viewport-fit=cover lets iOS expose safe-area env() insets; maximum-scale=1
+  // stops Safari's focus-zoom jumping the fixed design frame around inputs.
+  .replaceAll('content="width=device-width, initial-scale=1, shrink-to-fit=no"', 'content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no, viewport-fit=cover"')
+  // theme-color drives Safari's status-bar/notch chrome tint (else it falls back to grey)
+  .replaceAll('</title>', '</title><meta name="theme-color" content="#ffffff" />')
   .replaceAll('href="/favicon.ico"', `href="${projectBase}/favicon.ico"`)
   .replaceAll('href="./favicon.ico"', `href="${projectBase}/favicon.ico"`)
   .replaceAll('src="/_expo/', `src="${projectBase}/_expo/`)
@@ -28,8 +33,10 @@ if (fs.existsSync(bundleDir)) {
     const bundlePath = path.join(bundleDir, file);
     let bundle = fs.readFileSync(bundlePath, 'utf8');
     const next = bundle
-      .replaceAll('uri:"/assets/', 'uri:"./assets/')
-      .replaceAll("uri:'/assets/", "uri:'./assets/");
+      .replaceAll('uri:"/assets/', `uri:"${projectBase}/assets/`)
+      .replaceAll("uri:'/assets/", `uri:'${projectBase}/assets/`)
+      .replaceAll('uri:"./assets/', `uri:"${projectBase}/assets/`)
+      .replaceAll("uri:'./assets/", `uri:'${projectBase}/assets/`);
     if (next !== bundle) {
       fs.writeFileSync(bundlePath, next);
       patchedBundles.push(bundlePath);
@@ -37,5 +44,38 @@ if (fs.existsSync(bundleDir)) {
   }
 }
 
+const srcFigma = path.resolve(__dirname, '..', 'assets', 'figma');
+const dstFigma = path.join(dist, 'figma');
+let copiedFigmaAssets = 0;
+if (fs.existsSync(srcFigma)) {
+  fs.mkdirSync(dstFigma, { recursive: true });
+  for (const file of fs.readdirSync(srcFigma)) {
+    const src = path.join(srcFigma, file);
+    const dst = path.join(dstFigma, file);
+    if (fs.statSync(src).isFile()) {
+      fs.copyFileSync(src, dst);
+      copiedFigmaAssets += 1;
+    }
+  }
+}
+
+const routeAliases = [
+  'checkout', 'checkout/app-home', 'checkout/home', 'checkout/detail', 'checkout/details',
+  'checkout/insights', 'checkout/insights/category', 'checkout/insights/empty',
+  'checkout/purchases', 'checkout/dues', 'checkout/next-up',
+  'checkout/payment-method', 'checkout/payment-method/selected', 'checkout/payment-method/add-card', 'checkout/payment-method/added',
+  'checkout/otp', 'checkout/processing', 'checkout/insufficient', 'checkout/declined', 'checkout/success',
+  'checkout/onboarding/mobile', 'checkout/onboarding/otp', 'checkout/onboarding/identity', 'checkout/onboarding/nafath',
+  'checkout/onboarding/quick-call',
+  'checkout/onboarding/tenure', 'checkout/onboarding/payment', 'checkout/onboarding/processing', 'checkout/onboarding/success',
+  'checkout/notification'
+];
+let routeAliasFiles = 0;
+for (const route of routeAliases) {
+  const file = path.join(dist, route, 'index.html');
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, html);
+  routeAliasFiles += 1;
+}
 fs.writeFileSync(path.join(dist, '.nojekyll'), '');
-console.log('Patched Expo Web export for GitHub Pages project hosting:', { index, notFound, patchedBundles });
+console.log('Patched Expo Web export for GitHub Pages project hosting:', { index, notFound, patchedBundles, copiedFigmaAssets, routeAliasFiles });

@@ -9,10 +9,12 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.85.3",
+    "react-native-svg": "15.15.4",
     "react-native-web": "^0.21.2"
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "@types/react-dom": "^19.2.3",
     "playwright": "^1.60.0",
     "typescript": "~6.0.3"
   },
@@ -28,7 +30,9 @@
     "postexport:web": "node scripts/patch-gh-pages-export.cjs",
     "qa:browser": "node scripts/browser-qa.cjs",
     "qa:capture": "node scripts/capture-evidence.cjs",
-    "qa:in-app": "node scripts/in-app-qa.cjs"
+    "qa:in-app": "node scripts/in-app-qa.cjs",
+    "qa:typography": "node scripts/typography-probe.cjs",
+    "figma:preflight": "python3 scripts/figma_golden_preflight.py --project ."
   },
   "private": true
 }

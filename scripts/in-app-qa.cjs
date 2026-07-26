@@ -46,10 +46,17 @@ const viewports = [
         }
       });
       await page.waitForTimeout(100);
-      await page.screenshot({ path: `screenshots/fix-verify/${route.replace('/', '-')}-${viewportName}-bottom.png`, fullPage: true });
       const after = await page.evaluate(() => document.body.innerText.replace(/\s+/g, ' ').trim());
-      const required = route.includes('detail') ? ['Reference', 'Pay Next Installment'] : route.includes('purchases') ? ['AirPods Pro 3', 'Completed'] : route.includes('dues') ? ['4 Dues Selected', 'Remaining 1200'] : [];
+      const required = route.includes('detail') ? ['Reference', 'Pay next installment'] : route.includes('purchases') ? ['Samsung Galaxy S26', '1 of 3 installments paid'] : route.includes('dues') ? ['1 Due Selected', '1,800', 'Remaining 1,200', 'Pay selected', '1,800'] : [];
       const missing = required.filter((item) => !after.includes(item));
+      if (route.includes('dues')) {
+        const staleOverlayMarkers = ['Select installments to settle', 'Pay selected 900'];
+        for (const marker of staleOverlayMarkers) {
+          if (after.includes(marker)) missing.push(`stale overlay absent: ${marker}`);
+        }
+        const activeDuesNode = await page.evaluate(() => Boolean(document.querySelector('[data-testid="my-dues-1843-17915"]')));
+        if (!activeDuesNode) missing.push('active testID my-dues-1843-17915');
+      }
       summary.push({ route, viewportName, errors: errors.length, missing, scrollableCount: before.scrollableCount, text: before.text.slice(0, 90) });
       await page.close();
     }
