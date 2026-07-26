@@ -743,12 +743,24 @@ function WcPayOption({ label, sub, selected, onPress }: { label: string; sub?: s
   );
 }
 
+// Merchant cart payment row — icon left, label, radio right (extra.com pattern).
+function XPayRow({ label, icon, selected, onPress }: { label: string; icon: FigmaImageKey; selected?: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ selected: !!selected }} style={[styles.xPayRow, selected && styles.xPayRowSelected]}>
+      <Image source={figmaImageSource(icon)} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.xPayIcon} />
+      <Text style={styles.xPayLabel}>{label}</Text>
+      <View style={[styles.xPayRadio, selected && styles.xPayRadioOn]}>{selected ? <View style={styles.xPayRadioDot} /> : null}</View>
+    </Pressable>
+  );
+}
+
 // Merchant entry — extra.com product page mimic (SMEG MP00015644), with Tasheel
 // replacing Baseeta in the "Shop now, pay later!" section. Real product image/price
 // from extra.com; tabby/tamara figures are the live site's values for this product.
 function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   const [added, setAdded] = useState(false);
   const [checkoutMethod, setCheckoutMethod] = useState<'card' | 'apple' | 'tasheel'>('tasheel');
+  const [howOpen, setHowOpen] = useState(false);
   return (
     <AppShell surface="checkout">
       <StatusStrip />
@@ -783,10 +795,63 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
               <Money amount={wcMoney(WC_CART_TOTAL)} size={20} weight="700" />
             </View>
             <Text style={styles.xCartSectionTitle}>Payment option</Text>
-            <View style={{ gap: 10 }}>
-              <WcPayOption label="Credit / Debit Card" selected={checkoutMethod === 'card'} onPress={() => setCheckoutMethod('card')} />
-              <WcPayOption label="Apple Pay" selected={checkoutMethod === 'apple'} onPress={() => setCheckoutMethod('apple')} />
-              <WcPayOption label="Tasheel Finance" sub="Get 10% off and choose your payment plan" selected={checkoutMethod === 'tasheel'} onPress={() => setCheckoutMethod('tasheel')} />
+            <View style={{ gap: 12 }}>
+              <XPayRow label="Credit / Debit Card" icon="paymentCardIcon" selected={checkoutMethod === 'card'} onPress={() => setCheckoutMethod('card')} />
+              <XPayRow label="Apple Pay" icon="wcApplePay" selected={checkoutMethod === 'apple'} onPress={() => setCheckoutMethod('apple')} />
+            </View>
+            <View style={styles.xSnplHeader}>
+              <Svg width={30} height={24} viewBox="0 0 30 24"><Rect x="1.5" y="4" width="24" height="16.5" rx="3" fill="#fff" stroke="#1467b3" strokeWidth={1.8} /><Path d="M6 16.5h6" stroke="#1467b3" strokeWidth={1.8} strokeLinecap="round" strokeDasharray="2.6 2.4" /><Rect x="5.5" y="8" width="5" height="3.6" rx="1" fill="#1467b3" /><Path d="M20.5 2.5 26.5 8.5 24 11" fill="#ffd23a" opacity="0.9" /></Svg>
+              <Text style={styles.xSnplTitle}>Shop now, pay later!</Text>
+            </View>
+            <Pressable
+              testID="wc-tasheel-offer"
+              accessibilityRole="radio"
+              accessibilityState={{ selected: checkoutMethod === 'tasheel' }}
+              accessibilityLabel={`Tasheel Finance, instant 10 percent off, pay ${wcMoney(WC_DISCOUNTED_TOTAL)} instead of ${wcMoney(WC_CART_TOTAL)}`}
+              onPress={() => setCheckoutMethod('tasheel')}
+              style={[styles.xOfferCard, checkoutMethod === 'tasheel' && styles.xOfferCardSelected]}
+            >
+              <View style={styles.xOfferTopRow}>
+                <Image source={figmaImageSource('wcTasheelLogo')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 88, height: 26 }} />
+                <View style={[styles.xOfferRadio, checkoutMethod === 'tasheel' && styles.xOfferRadioOn]}>
+                  {checkoutMethod === 'tasheel' ? <View style={styles.xOfferRadioDot} /> : null}
+                </View>
+              </View>
+              <Text style={styles.xOfferTitle}>Split your purchases your way!</Text>
+              <Text style={styles.xOfferBody}>
+                Instant 10% off your order — pay {wcMoney(WC_DISCOUNTED_TOTAL)} instead of {wcMoney(WC_CART_TOTAL)}, in up to {WC_TENURES[WC_TENURES.length - 1]} payments.
+              </Text>
+              <Pressable onPress={() => setHowOpen((v) => !v)} accessibilityRole="button" accessibilityLabel="How does Tasheel Finance work?" hitSlop={6}>
+                <Text style={styles.xOfferLink}>{howOpen ? 'Hide details' : 'How does it work?'}</Text>
+              </Pressable>
+              {howOpen ? (
+                <View style={styles.xOfferSteps}>
+                  {[
+                    'Verify your number and ID — takes about a minute.',
+                    `Pick a plan from 2 to ${WC_TENURES[WC_TENURES.length - 1]} months.`,
+                    'Pay the first instalment now, the rest on schedule.',
+                  ].map((line, i) => (
+                    <View key={line} style={styles.xOfferStepRow}>
+                      <View style={styles.xOfferStepNum}><Text style={styles.xOfferStepNumText}>{i + 1}</Text></View>
+                      <Text style={styles.xOfferStepText}>{line}</Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
+            </Pressable>
+            <View style={styles.xRivalRow}>
+              <View style={styles.xRivalCard}>
+                <View style={styles.xTabbyChip}><Text style={styles.xTabbyText}>tabby</Text></View>
+                <Text style={styles.xRivalTitle}>Pace your payments</Text>
+                <Text style={styles.xRivalBody}>4 monthly payments of {wcMoney(WC_CART_TOTAL / 4)}, interest-free.</Text>
+                <Text style={styles.xRivalLink}>Learn more</Text>
+              </View>
+              <View style={styles.xRivalCard}>
+                <View style={styles.xTamaraChip}><Text style={styles.xTamaraText}>tamara</Text></View>
+                <Text style={styles.xRivalTitle}>Shop & split with tamara</Text>
+                <Text style={styles.xRivalBody}>Up to 24 months from {wcMoney(WC_CART_TOTAL / 24)} — or pay in 4. Sharia-compliant.</Text>
+                <Text style={styles.xRivalLink}>Learn more</Text>
+              </View>
             </View>
             <Pressable testID="wc-cart-continue" style={styles.xCartContinue} onPress={() => checkoutMethod === 'tasheel' && setRoute('wcMobile')} accessibilityRole="button" accessibilityLabel="Continue with Tasheel Finance">
               <Text style={styles.xCartContinueText}>{checkoutMethod === 'tasheel' ? 'Continue with Tasheel Finance' : 'Select Tasheel Finance to continue'}</Text>
@@ -808,17 +873,6 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
                 <Text style={styles.xPriceCurrency}>SAR</Text>
                 <Text style={styles.xPrice}>7,000</Text>
                 <Text style={styles.xVat}>Incl. VAT</Text>
-              </View>
-              <View style={styles.xSnplSection}>
-                <View style={styles.xSnplHeader}>
-                  <Svg width={30} height={24} viewBox="0 0 30 24"><Rect x="1.5" y="4" width="24" height="16.5" rx="3" fill="#fff" stroke="#1467b3" strokeWidth={1.8} /><Path d="M6 16.5h6" stroke="#1467b3" strokeWidth={1.8} strokeLinecap="round" strokeDasharray="2.6 2.4" /><Rect x="5.5" y="8" width="5" height="3.6" rx="1" fill="#1467b3" /><Path d="M20.5 2.5 26.5 8.5 24 11" fill="#ffd23a" opacity="0.9" /></Svg>
-                  <Text style={styles.xSnplTitle}>Shop now, pay later!</Text>
-                </View>
-                <View testID="wc-tasheel-preview" style={styles.xSnplCard}>
-                  <View style={styles.xTasheelChip}><Image source={figmaImageSource('wcTasheelLogo')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 76, height: 22 }} /></View>
-                  <Text style={styles.xSnplCardTitle}>Split your purchases your way</Text>
-                  <Text style={styles.xSnplCardBody}>Get 10% off, then choose 2 to 36 months at checkout.</Text>
-                </View>
               </View>
               <Pressable testID="wc-add-to-cart" style={styles.xAddCartPrimary} onPress={() => setAdded(true)} accessibilityRole="button" accessibilityLabel="Add refrigerator to cart">
                 <Text style={styles.xAddCartPrimaryText}>Add to cart</Text>
@@ -1830,12 +1884,27 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
   );
 }
 
+// Live-demo hook: `?tasheel=N` anchors the whole web flow to a phone notification
+// fired N seconds after load, so processing lands on success at the same moment.
+// T0 is captured at module load, not at render, so time already spent on earlier
+// screens counts against the budget. Without the param the flow runs at its own pace.
+const WC_DEMO_T0 = Date.now();
+const WC_DEMO_WINDOW_MS = (() => {
+  if (typeof location === 'undefined') return null;
+  const match = /[?&]tasheel=(\d+)/.exec(location.search);
+  return match ? parseInt(match[1], 10) * 1000 : null;
+})();
+const WC_PROCESSING_MS = 2900;
+
 // Figma 1691:67680 — web processing with rocket + animated bar, auto-advances to success.
 function WcProcessing({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   const progress = useRef(new Animated.Value(0)).current;
   useEffect(() => {
-    Animated.timing(progress, { toValue: 1, duration: 2600, easing: Easing.inOut(Easing.quad), useNativeDriver: false }).start();
-    const timer = setTimeout(() => setRoute('wcSuccess'), 2900);
+    const hold = WC_DEMO_WINDOW_MS
+      ? Math.max(WC_PROCESSING_MS, WC_DEMO_WINDOW_MS - 2000 - (Date.now() - WC_DEMO_T0))
+      : WC_PROCESSING_MS;
+    Animated.timing(progress, { toValue: 1, duration: hold - 300, easing: Easing.inOut(Easing.quad), useNativeDriver: false }).start();
+    const timer = setTimeout(() => setRoute('wcSuccess'), hold);
     return () => clearTimeout(timer);
   }, [progress, setRoute]);
   return (
@@ -4239,9 +4308,9 @@ const styles = StyleSheet.create({
   xHeaderSide: { width: 64, flexDirection: 'row', alignItems: 'center' },
   wcFeeFree: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: greenMid },
   xHeaderGlyph: { fontSize: 26, lineHeight: 28, color: '#13316b', fontWeight: '400' },
-  xImageCard: { backgroundColor: '#fff', alignItems: 'center', paddingVertical: 10 },
-  xProductImg: { width: 300, height: 300 },
-  xBody: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 10 },
+  xImageCard: { flex: 1, minHeight: 260, backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', paddingVertical: 10 },
+  xProductImg: { width: 300, height: '100%', maxHeight: 340 },
+  xBody: { paddingHorizontal: 16, paddingTop: 14, paddingBottom: 18 },
   xBrand: { fontSize: 13, fontWeight: '700', color: '#1467b3', letterSpacing: 0.4 },
   xTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600', color: '#15191e', marginTop: 4 },
   xRatingRow: { flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 8 },
@@ -4260,6 +4329,32 @@ const styles = StyleSheet.create({
   xTabbyText: { fontSize: 17, fontWeight: '800', color: '#0f1611', letterSpacing: -0.5 },
   xTamaraChip: { alignSelf: 'flex-start', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 5, backgroundColor: '#f7b7d0' },
   xTamaraText: { fontSize: 17, fontWeight: '800', color: '#15191e', letterSpacing: -0.3 },
+  xPayRow: { flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 62, backgroundColor: '#fff', borderWidth: 1, borderColor: '#dbe3ec', borderRadius: 14, paddingHorizontal: 16 },
+  xPayRowSelected: { borderColor: '#15191e', borderWidth: 2, paddingHorizontal: 15 },
+  xPayIcon: { width: 24, height: 24 },
+  xPayLabel: { flex: 1, fontSize: 16, lineHeight: 21, fontWeight: '600', color: '#15191e' },
+  xPayRadio: { width: 22, height: 22, borderRadius: 999, borderWidth: 1.5, borderColor: '#c3ccd6', alignItems: 'center', justifyContent: 'center' },
+  xPayRadioOn: { borderColor: '#15191e', borderWidth: 2 },
+  xPayRadioDot: { width: 11, height: 11, borderRadius: 999, backgroundColor: '#15191e' },
+  xOfferCard: { backgroundColor: '#fff', borderWidth: 1, borderColor: '#dbe3ec', borderRadius: 14, padding: 16, gap: 7 },
+  xOfferCardSelected: { backgroundColor: '#eefaea', borderColor: '#1c8a2b', borderWidth: 2, padding: 15 },
+  xOfferTopRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  xOfferRadio: { width: 22, height: 22, borderRadius: 999, borderWidth: 1.5, borderColor: '#c3ccd6', alignItems: 'center', justifyContent: 'center' },
+  xOfferRadioOn: { borderColor: '#1c8a2b', borderWidth: 2, backgroundColor: '#fff' },
+  xOfferRadioDot: { width: 11, height: 11, borderRadius: 999, backgroundColor: '#1c8a2b' },
+  xOfferTitle: { fontSize: 18, lineHeight: 24, fontWeight: '800', color: '#15191e', marginTop: 2 },
+  xOfferBody: { fontSize: 15, lineHeight: 21, color: '#2c3a47' },
+  xOfferLink: { fontSize: 15, lineHeight: 21, fontWeight: '600', color: '#1467b3', marginTop: 2 },
+  xOfferSteps: { gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#cfe6c9' },
+  xOfferStepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  xOfferStepNum: { width: 20, height: 20, borderRadius: 999, backgroundColor: '#1c8a2b', alignItems: 'center', justifyContent: 'center', marginTop: 1 },
+  xOfferStepNumText: { fontSize: 11, fontWeight: '800', color: '#fff' },
+  xOfferStepText: { flex: 1, fontSize: 14, lineHeight: 19, color: '#2c3a47' },
+  xRivalRow: { flexDirection: 'row', gap: 12, alignItems: 'flex-start' },
+  xRivalCard: { flex: 1, backgroundColor: '#fff', borderWidth: 1, borderColor: '#dbe3ec', borderRadius: 14, padding: 14, gap: 7 },
+  xRivalTitle: { fontSize: 15, lineHeight: 20, fontWeight: '800', color: '#15191e', marginTop: 2 },
+  xRivalBody: { fontSize: 13, lineHeight: 19, color: '#48566a' },
+  xRivalLink: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: '#1467b3', marginTop: 2 },
   xSnplCardTitle: { fontSize: 15, lineHeight: 20, fontWeight: '700', color: '#15191e', marginTop: 3 },
   xSnplCardBody: { fontSize: 14, lineHeight: 20, color: '#2c3a47' },
   xSnplBig: { fontSize: 17, fontWeight: '800', color: '#15191e' },
