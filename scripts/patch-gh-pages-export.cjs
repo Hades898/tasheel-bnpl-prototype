@@ -16,6 +16,10 @@ html = html
   .replaceAll('content="width=device-width, initial-scale=1, shrink-to-fit=no"', 'content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no, viewport-fit=cover"')
   // theme-color drives Safari's status-bar/notch chrome tint (else it falls back to grey)
   .replaceAll('</title>', '</title><meta name="theme-color" content="#ffffff" />')
+  // The JS bundle is content-hashed, but this shell is not: iOS Safari and WKWebView
+  // will happily serve a cached copy pointing at a bundle from a previous deploy, so
+  // a demo phone can sit on stale UI long after a fix ships. Refuse to cache the shell.
+  .replaceAll('<meta charset="utf-8" />', '<meta charset="utf-8" /><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" />')
   .replaceAll('href="/favicon.ico"', `href="${projectBase}/favicon.ico"`)
   .replaceAll('href="./favicon.ico"', `href="${projectBase}/favicon.ico"`)
   .replaceAll('src="/_expo/', `src="${projectBase}/_expo/`)
