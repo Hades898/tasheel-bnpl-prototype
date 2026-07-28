@@ -1400,7 +1400,7 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
             <View style={styles.wcPlanCard}>
               <View style={{ gap: 6, width: '100%' }}>
                 <Text style={styles.wcPlanTitle}>Choose your plan</Text>
-                <Text style={styles.wcPlanSub}>Choose from 2 to <Text style={{ fontWeight: '600' }}>36 months</Text></Text>
+                <Text style={styles.wcPlanSub}>You can split your purchase up to <Text style={{ fontWeight: '600' }}>36 months</Text></Text>
               </View>
               <View style={styles.wcStepperTrack}>
                 <Pressable testID="wc-plan-minus" disabled={previous === null} onPress={() => previous !== null && bump(previous)} style={[styles.wcStepperMinus, previous === null && { opacity: 0.45 }]} accessibilityRole="button" accessibilityLabel="Previous plan">
@@ -1430,16 +1430,8 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                     <Text style={styles.wcPlanHeroToday}> today</Text>
                   </View>
                   <Text style={styles.wcPlanThen}>Then <Riyal size={12} color={muted} /> {wcMoney(wcPlanMonthly(months))} / Month</Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                    {fee === 0 ? (
-                      <Text style={styles.wcPlanFees}>No fees</Text>
-                    ) : (
-                      <View style={styles.wcPlanFeesRow}>
-                        <Text style={styles.wcPlanFees}>Fees</Text>
-                        <Riyal size={11} color={muted} />
-                        <Text style={styles.wcPlanFees}>{wcMoney(fee)}</Text>
-                      </View>
-                    )}
+                  <View style={styles.wcPlanFeesRow}>
+                    <Text style={styles.wcPlanFees}>{fee === 0 ? 'No fees' : <>Fees <Riyal size={11} color={muted} /> {wcMoney(fee)}</>}</Text>
                     {fee > 0 ? (
                       <Pressable testID="wc-four-month-fee-help" onPress={() => setSheet('fee')} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Explain the ${months} month fee`}>
                         <Image source={figmaImageSource('wcInfoCircle')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
@@ -1694,10 +1686,23 @@ function WcCartSheet({ onClose }: { onClose: () => void }) {
             <Money amount={wcMoney(item.amount)} size={15} />
           </View>
         ))}
-        <View style={[styles.wcDetailsCard, styles.wcCartItemRow]}>
-          <Text style={styles.wcDetailsLabel}>Total</Text>
-          <View style={{ flex: 1 }} />
-          <Money amount={wcMoney(WC_CART_TOTAL)} size={15} />
+        <View style={[styles.wcDetailsCard, { gap: 10 }]}>
+          <View style={styles.wcCartTotalRow}>
+            <Text style={styles.wcDetailsDim}>Subtotal</Text>
+            <Money amount={wcMoney(WC_CART_TOTAL)} size={15} color={muted} />
+          </View>
+          <View style={styles.wcCartTotalRow}>
+            <Text style={styles.wcCartDiscountLabel}>Tasheel discount (10%)</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Text style={styles.wcCartDiscountLabel}>− </Text>
+              <Money amount={wcMoney(WC_DISCOUNT_AMOUNT)} size={15} color={greenMid} weight="700" />
+            </View>
+          </View>
+          <View style={styles.wcCartTotalDivider} />
+          <View style={styles.wcCartTotalRow}>
+            <Text style={styles.wcDetailsLabel}>Total</Text>
+            <Money amount={wcMoney(WC_DISCOUNTED_TOTAL)} size={17} weight="700" />
+          </View>
         </View>
         <Pressable testID="wc-cart-got-it" style={styles.wcGreenCta} onPress={onClose} accessibilityRole="button">
           <Text style={styles.wcGreenCtaText}>Got it</Text>
@@ -4187,6 +4192,9 @@ const styles = StyleSheet.create({
   wcCartLeft: { flexDirection: 'row', gap: 6, alignItems: 'center' },
   wcCartItems: { fontSize: 15, lineHeight: 20, color: text, letterSpacing: -0.24 },
   wcCartRight: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  wcCartTotalRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  wcCartTotalDivider: { height: 1, backgroundColor: '#e8ecea' },
+  wcCartDiscountLabel: { fontSize: 13, lineHeight: 18, fontWeight: '700', color: greenMid },
   wcCartDiscountChip: { backgroundColor: '#dff5d4', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
   wcCartDiscountChipText: { fontSize: 11, lineHeight: 15, fontWeight: '700', color: '#16720b' },
   wcCartWasPrice: { fontSize: 13, lineHeight: 18, color: muted, textDecorationLine: 'line-through' },
@@ -4205,8 +4213,8 @@ const styles = StyleSheet.create({
   wcPlanHeroAmount: { fontSize: 34, lineHeight: 41, fontWeight: '700', color: text, letterSpacing: 0.38 },
   wcPlanHeroToday: { fontSize: 16, lineHeight: 22, color: muted },
   wcPlanThen: { fontSize: 17, lineHeight: 22, color: muted, letterSpacing: -0.41, textAlign: 'center' },
-  wcPlanFees: { fontSize: 12, lineHeight: 16, color: muted, textAlign: 'center', marginTop: -8 },
-  wcPlanFeesRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  wcPlanFees: { fontSize: 12, lineHeight: 16, color: muted, textAlign: 'center' },
+  wcPlanFeesRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5, marginTop: -8 },
   wcGreyCta: { backgroundColor: '#e5e7eb', borderRadius: 9999, minHeight: 50, maxHeight: 50, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 14, width: '100%' },
   wcGreyCtaText: { color: text, fontSize: 17, lineHeight: 22, fontWeight: '500', letterSpacing: -0.41 },
   wcDetailsSheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '94%', backgroundColor: canvas, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 28, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
