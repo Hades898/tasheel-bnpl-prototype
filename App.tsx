@@ -2009,7 +2009,9 @@ function WcSuccess({ setRoute, months }: { setRoute: (r: RouteKey) => void; mont
 }
 
 // iOS lock-screen push notification — system UI pattern with the real Tasheel mark.
-// Tapping the banner opens the Tasheel app on the purchase (transaction details) screen.
+// This is the handoff out of the web: tapping the banner deep-links into the real
+// Tasheel app rather than continuing into the web-rendered app simulation. If the
+// app is not installed nothing happens and the lock scene stays put.
 function WcNotification({ setRoute, months }: { setRoute: (r: RouteKey) => void; months: number }) {
   const drop = useRef(new Animated.Value(0)).current;
   // On a real phone the user sees the actual status-bar clock right above this scene,
@@ -2045,7 +2047,7 @@ function WcNotification({ setRoute, months }: { setRoute: (r: RouteKey) => void;
         <Text style={styles.wcLockDate}>{dateLine}</Text>
         <Text style={styles.wcLockClock}>{clock}</Text>
         <Animated.View style={[styles.wcNotifBanner, { backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' } as object, { opacity: drop, transform: [{ translateY: drop.interpolate({ inputRange: [0, 1], outputRange: [-120, 0] }) }] }]}>
-          <Pressable testID="wc-notification-banner" style={styles.wcNotifInner} onPress={() => setRoute('detail')} accessibilityRole="button" accessibilityLabel="Open Tasheel purchase details">
+          <Pressable testID="wc-notification-banner" style={styles.wcNotifInner} onPress={wcOpenTasheelApp} accessibilityRole="button" accessibilityLabel="Open the Tasheel app">
             <View style={styles.wcNotifAppIcon}><TasheelMark size={26} /></View>
             <View style={{ flex: 1, gap: 1 }}>
               <View style={styles.wcNotifTitleRow}>
