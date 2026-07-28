@@ -805,10 +805,9 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
             </View>
             <Pressable
               testID="wc-tasheel-offer"
-              accessibilityRole="radio"
-              accessibilityState={{ selected: checkoutMethod === 'tasheel' }}
-              accessibilityLabel={`Tasheel Finance, instant 10 percent off, pay ${wcMoney(WC_DISCOUNTED_TOTAL)} instead of ${wcMoney(WC_CART_TOTAL)}`}
-              onPress={() => setCheckoutMethod('tasheel')}
+              accessibilityRole="button"
+              accessibilityLabel={`Continue with Tasheel Finance, instant 10 percent off, pay ${wcMoney(WC_DISCOUNTED_TOTAL)} instead of ${wcMoney(WC_CART_TOTAL)}`}
+              onPress={() => { setCheckoutMethod('tasheel'); setRoute('wcMobile'); }}
               style={[styles.xOfferCard, checkoutMethod === 'tasheel' && styles.xOfferCardSelected]}
             >
               <View style={styles.xOfferTopRow}>
@@ -970,11 +969,11 @@ function WcLeaveSheet({ onStay, onLeave }: { onStay: () => void; onLeave: () => 
       <Animated.View style={[styles.wcDetailsSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [320, 0] }) }] }]}>
         <View style={styles.sheetGrabber} />
         <Text style={styles.wcDetailsTitle}>Leave checkout?</Text>
-        <Text style={styles.wcLeaveBody}>You'll lose your progress and will need to start over if you come back. Do you want to cancel your transaction and return to the merchant?</Text>
+        <Text style={styles.wcLeaveBody}>You'll lose your progress and will need to start over if you come back. Leaving opens the Tasheel app, where you can pick this up from your account.</Text>
         <Pressable testID="wc-leave-stay" style={styles.wcGreenCta} onPress={onStay} accessibilityRole="button">
           <Text style={styles.wcGreenCtaText}>Keep going</Text>
         </Pressable>
-        <Pressable testID="wc-leave-confirm" style={styles.wcLeaveLink} onPress={onLeave} accessibilityRole="button">
+        <Pressable testID="wc-leave-confirm" style={styles.wcLeaveLink} onPress={() => { wcOpenTasheelApp(); onLeave(); }} accessibilityRole="button" accessibilityLabel="Leave checkout and open the Tasheel app">
           <Text style={styles.wcLeaveLinkText}>Leave checkout</Text>
         </Pressable>
       </Animated.View>
@@ -1273,30 +1272,33 @@ const WC_DISCOUNT_RATE = 0.10;
 const WC_DISCOUNT_AMOUNT = Math.round(WC_CART_TOTAL * WC_DISCOUNT_RATE * 100) / 100;
 const WC_DISCOUNTED_TOTAL = Math.round((WC_CART_TOTAL - WC_DISCOUNT_AMOUNT) * 100) / 100;
 const WC_AVAILABLE_LIMIT = 5000.00;
-const WC_BNPL_MAX_LIMIT = 10000.00;
-const WC_BNPL_PLUS_MAX_LIMIT = 50000.00;
 const WC_FINANCED_PRINCIPAL = Math.min(WC_DISCOUNTED_TOTAL, WC_AVAILABLE_LIMIT);
 const WC_DOWN_PAYMENT = Math.max(0, Math.round((WC_DISCOUNTED_TOTAL - WC_FINANCED_PRINCIPAL) * 100) / 100);
 const WC_TENURES = [2, 3, 4, 6, 9, 12, 24, 36] as const;
-const WC_FEE_RATES: Record<number, number | null> = {
+// 2 and 3 months are free; 4 months and longer carry a 1% Murabaha fee on the
+// financed principal. Every tenure has a rate, so no plan is ever unselectable.
+const WC_FEE_RATES: Record<number, number> = {
   2: 0,
   3: 0,
   4: 0.01,
-  6: null,
-  9: null,
-  12: null,
-  24: null,
-  36: null,
+  6: 0.01,
+  9: 0.01,
+  12: 0.01,
+  24: 0.01,
+  36: 0.01,
 };
-const wcPlanFeeRate = (months: number) => WC_FEE_RATES[months] ?? null;
-const wcPlanReady = (months: number) => wcPlanFeeRate(months) !== null;
-const wcPlanFee = (months: number) => {
-  const rate = wcPlanFeeRate(months);
-  return rate === null ? null : Math.round(WC_FINANCED_PRINCIPAL * rate * 100) / 100;
-};
-const wcPlanTotal = (months: number) => Math.round((WC_DISCOUNTED_TOTAL + (wcPlanFee(months) ?? 0)) * 100) / 100;
-const wcPlanMonthly = (months: number) => Math.round(((WC_FINANCED_PRINCIPAL + (wcPlanFee(months) ?? 0)) / months) * 100) / 100;
+const wcPlanFeeRate = (months: number) => WC_FEE_RATES[months] ?? 0;
+const wcPlanFee = (months: number) => Math.round(WC_FINANCED_PRINCIPAL * wcPlanFeeRate(months) * 100) / 100;
+const wcPlanTotal = (months: number) => Math.round((WC_DISCOUNTED_TOTAL + wcPlanFee(months)) * 100) / 100;
+const wcPlanMonthly = (months: number) => Math.round(((WC_FINANCED_PRINCIPAL + wcPlanFee(months)) / months) * 100) / 100;
 const wcPlanToday = (months: number) => Math.round((WC_DOWN_PAYMENT + wcPlanMonthly(months)) * 100) / 100;
+// Deep link into the Tasheel iOS app (scheme `tasheel`, bundle com.tasheel.app).
+// Nothing happens if the app is not installed, so the sheet stays open and the
+// shopper can still fall back to the merchant page.
+const wcOpenTasheelApp = () => {
+  if (typeof window === 'undefined') return;
+  try { window.location.href = 'tasheel://'; } catch { /* scheme unsupported */ }
+};
 const wcAdjacentTenure = (months: number, offset: -1 | 1) => {
   const index = WC_TENURES.indexOf(months as (typeof WC_TENURES)[number]);
   const next = index + offset;
@@ -1377,7 +1379,6 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
   const previous = wcAdjacentTenure(months, -1);
   const next = wcAdjacentTenure(months, 1);
   const fee = wcPlanFee(months);
-  const ready = wcPlanReady(months);
   return (
     <AppShell>
       <View testID="wc-tenure-1878-13247" style={styles.wcObScreen}>
@@ -1390,7 +1391,9 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                 <Text style={styles.wcCartItems}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
               </View>
               <View style={styles.wcCartRight}>
-                <Money amount={formatAmount(Math.round(WC_CART_TOTAL))} size={16} />
+                <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>10% off</Text></View>
+                <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(WC_CART_TOTAL))}</Text>
+                <Money amount={wcMoney(WC_DISCOUNTED_TOTAL)} size={16} weight="700" />
                 <Image source={figmaImageSource('wcArrowRight')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 13, height: 13 }} />
               </View>
             </Pressable>
@@ -1398,17 +1401,6 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
               <View style={{ gap: 6, width: '100%' }}>
                 <Text style={styles.wcPlanTitle}>Choose your plan</Text>
                 <Text style={styles.wcPlanSub}>Choose from 2 to <Text style={{ fontWeight: '600' }}>36 months</Text></Text>
-                <Text testID="wc-product-limits" style={styles.wcProductLimits}>BNPL up to SAR {wcMoney(WC_BNPL_MAX_LIMIT)} · BNPL Plus up to SAR {wcMoney(WC_BNPL_PLUS_MAX_LIMIT)}</Text>
-              </View>
-              <View testID="wc-discount-summary" style={styles.wcDiscountBanner}>
-                <View>
-                  <Text style={styles.wcDiscountTitle}>10% Tasheel discount</Text>
-                  <Text style={styles.wcDiscountSub}>Order after discount</Text>
-                </View>
-                <View style={{ alignItems: 'flex-end', gap: 2 }}>
-                  <Text style={styles.wcDiscountSaving}>− <Riyal size={10} color={greenMid} /> {wcMoney(WC_DISCOUNT_AMOUNT)}</Text>
-                  <Money amount={wcMoney(WC_DISCOUNTED_TOTAL)} size={15} weight="700" />
-                </View>
               </View>
               <View style={styles.wcStepperTrack}>
                 <Pressable testID="wc-plan-minus" disabled={previous === null} onPress={() => previous !== null && bump(previous)} style={[styles.wcStepperMinus, previous === null && { opacity: 0.45 }]} accessibilityRole="button" accessibilityLabel="Previous plan">
@@ -1439,9 +1431,17 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                   </View>
                   <Text style={styles.wcPlanThen}>Then <Riyal size={12} color={muted} /> {wcMoney(wcPlanMonthly(months))} / Month</Text>
                   <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 }}>
-                    <Text style={styles.wcPlanFees}>{fee === null ? 'Murabaha fee rate pending' : fee === 0 ? 'Zero fees · Zero interest' : `Includes SAR ${wcMoney(fee)} total fee`}</Text>
-                    {months === 4 ? (
-                      <Pressable testID="wc-four-month-fee-help" onPress={() => setSheet('fee')} hitSlop={10} accessibilityRole="button" accessibilityLabel="Explain the 4 month fee">
+                    {fee === 0 ? (
+                      <Text style={styles.wcPlanFees}>No fees</Text>
+                    ) : (
+                      <View style={styles.wcPlanFeesRow}>
+                        <Text style={styles.wcPlanFees}>Fees</Text>
+                        <Riyal size={11} color={muted} />
+                        <Text style={styles.wcPlanFees}>{wcMoney(fee)}</Text>
+                      </View>
+                    )}
+                    {fee > 0 ? (
+                      <Pressable testID="wc-four-month-fee-help" onPress={() => setSheet('fee')} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Explain the ${months} month fee`}>
                         <Image source={figmaImageSource('wcInfoCircle')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
                       </Pressable>
                     ) : null}
@@ -1449,8 +1449,8 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                 </View>
               </FadeSwap>
               <View style={{ gap: 12, width: '100%' }}>
-                <Pressable testID="wc-plan-continue" disabled={!ready} style={[styles.wcGreenCta, !ready && styles.wcGreenCtaDisabled]} onPress={() => ready && setRoute('wcPayment')} accessibilityRole="button" accessibilityState={{ disabled: !ready }}>
-                  <Text style={[styles.wcGreenCtaText, !ready && styles.wcGreenCtaTextDisabled]}>{ready ? 'Continue with plan' : 'Fee rate pending'}</Text>
+                <Pressable testID="wc-plan-continue" style={styles.wcGreenCta} onPress={() => setRoute('wcPayment')} accessibilityRole="button">
+                  <Text style={styles.wcGreenCtaText}>Continue with plan</Text>
                 </Pressable>
                 <Pressable testID="wc-plan-details" style={styles.wcGreyCta} onPress={() => setSheet('details')} accessibilityRole="button">
                   <Text style={styles.wcGreyCtaText}>View plan details</Text>
@@ -1536,10 +1536,10 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
                 <Image source={figmaImageSource('wcInfoCircle')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 13, height: 13 }} />
               </Pressable>
             </View>
-            {fee === null ? <Text style={styles.wcDetailsDim}>Rate pending</Text> : <Money amount={wcMoney(fee)} size={17} />}
+            {fee === 0 ? <Text style={styles.wcDetailsDim}>No fees</Text> : <Money amount={wcMoney(fee)} size={17} />}
             {feeTipOpen ? (
               <View style={styles.wcFeeTip} pointerEvents="none">
-                <Text style={styles.wcFeeTipText}>{months === 4 ? 'The 4-month plan has a 1% Murabaha fee on the financed SAR 5,000. It is split equally across the installments.' : fee === 0 ? 'This plan has zero fees and zero interest.' : 'The fee rate for this tenure has not been supplied yet.'}</Text>
+                <Text style={styles.wcFeeTipText}>{fee === 0 ? 'This plan has no fees and no interest.' : `Plans of 4 months and longer carry a 1% Murabaha fee on the financed amount. It is split equally across the ${months} installments.`}</Text>
               </View>
             ) : null}
           </View>
@@ -1656,7 +1656,7 @@ function WcWhyTodaySheet({ months, onClose }: { months: number; onClose: () => v
           </View>
           <View style={styles.wcWhyRow}>
             <View style={styles.wcWhyDot} />
-            <Text style={styles.wcWhyText}>{fee === null ? 'The Murabaha fee rate for this tenure is pending.' : fee === 0 ? 'This plan has zero fees and zero interest.' : `The SAR ${wcMoney(fee)} Murabaha fee is included in the equal installments.`}</Text>
+            <Text style={styles.wcWhyText}>{fee === 0 ? 'This plan has no fees and no interest.' : <>The <Riyal size={12} color={muted} /> {wcMoney(fee)} Murabaha fee is included in the equal installments.</>}</Text>
           </View>
         </View>
         <Pressable testID="wc-why-got-it" style={styles.wcGreenCta} onPress={onClose} accessibilityRole="button">
@@ -2048,7 +2048,7 @@ function WcNotification({ setRoute, months }: { setRoute: (r: RouteKey) => void;
                 <Text style={styles.wcNotifTime}>now</Text>
               </View>
               <Text style={styles.wcNotifTitle}>Purchase confirmed 🎉</Text>
-              <Text style={styles.wcNotifBody}>Your Extrastores purchase of SAR {wcMoney(WC_DISCOUNTED_TOTAL)} after discount is split over {months} months. Tap to view your plan.</Text>
+              <Text style={styles.wcNotifBody}>Your Extrastores purchase of <Riyal size={12} color={muted} /> {wcMoney(WC_DISCOUNTED_TOTAL)} after discount is split over {months} months. Tap to view your plan.</Text>
             </View>
           </Pressable>
         </Animated.View>
@@ -4186,15 +4186,13 @@ const styles = StyleSheet.create({
   wcCartPill: { height: 49, borderRadius: 9999, backgroundColor: '#fff', paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcCartLeft: { flexDirection: 'row', gap: 6, alignItems: 'center' },
   wcCartItems: { fontSize: 15, lineHeight: 20, color: text, letterSpacing: -0.24 },
-  wcCartRight: { flexDirection: 'row', gap: 4, alignItems: 'center' },
+  wcCartRight: { flexDirection: 'row', gap: 6, alignItems: 'center' },
+  wcCartDiscountChip: { backgroundColor: '#dff5d4', borderRadius: 6, paddingHorizontal: 6, paddingVertical: 2 },
+  wcCartDiscountChipText: { fontSize: 11, lineHeight: 15, fontWeight: '700', color: '#16720b' },
+  wcCartWasPrice: { fontSize: 13, lineHeight: 18, color: muted, textDecorationLine: 'line-through' },
   wcPlanCard: { width: '100%', minHeight: 550, backgroundColor: '#fff', borderRadius: 40, padding: 24, gap: 22, alignItems: 'center', justifyContent: 'space-between', shadowColor: '#000', shadowOpacity: 0.12, shadowRadius: 20, shadowOffset: { width: 0, height: 16 } },
   wcPlanTitle: { fontSize: 28, lineHeight: 34, fontWeight: '700', color: text, letterSpacing: 0.36 },
   wcPlanSub: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08 },
-  wcProductLimits: { fontSize: 11, lineHeight: 15, color: greenMid, fontWeight: '600' },
-  wcDiscountBanner: { width: '100%', minHeight: 64, borderRadius: 16, backgroundColor: '#effbea', paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  wcDiscountTitle: { fontSize: 15, lineHeight: 20, fontWeight: '700', color: '#16720b' },
-  wcDiscountSub: { fontSize: 12, lineHeight: 16, color: muted, marginTop: 2 },
-  wcDiscountSaving: { fontSize: 13, lineHeight: 18, fontWeight: '700', color: '#16720b' },
   wcStepperTrack: { width: 310, borderRadius: 999, backgroundColor: '#f3f4f6', paddingHorizontal: 12, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcStepperMinus: { width: 47, height: 47, borderRadius: 99, backgroundColor: '#fff', borderWidth: 1, borderColor: borderSubtle, alignItems: 'center', justifyContent: 'center' },
   wcStepperPlus: { width: 47, height: 47, borderRadius: 99, backgroundColor: green, alignItems: 'center', justifyContent: 'center' },
@@ -4208,6 +4206,7 @@ const styles = StyleSheet.create({
   wcPlanHeroToday: { fontSize: 16, lineHeight: 22, color: muted },
   wcPlanThen: { fontSize: 17, lineHeight: 22, color: muted, letterSpacing: -0.41, textAlign: 'center' },
   wcPlanFees: { fontSize: 12, lineHeight: 16, color: muted, textAlign: 'center', marginTop: -8 },
+  wcPlanFeesRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   wcGreyCta: { backgroundColor: '#e5e7eb', borderRadius: 9999, minHeight: 50, maxHeight: 50, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 20, paddingVertical: 14, width: '100%' },
   wcGreyCtaText: { color: text, fontSize: 17, lineHeight: 22, fontWeight: '500', letterSpacing: -0.41 },
   wcDetailsSheet: { position: 'absolute', left: 0, right: 0, bottom: 0, maxHeight: '94%', backgroundColor: canvas, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 28, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
