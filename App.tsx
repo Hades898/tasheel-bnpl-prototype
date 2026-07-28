@@ -1268,6 +1268,7 @@ function WcNafath({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 // the first installment. Unknown long-tenure rates stay blocked, never inferred.
 const WC_CART_TOTAL = 7000.00;
 const WC_CART_ITEMS = 1;
+const WC_ORDER_REFERENCE = 'EXT-2026-45210';
 const WC_DISCOUNT_RATE = 0.10;
 const WC_DISCOUNT_AMOUNT = Math.round(WC_CART_TOTAL * WC_DISCOUNT_RATE * 100) / 100;
 const WC_DISCOUNTED_TOTAL = Math.round((WC_CART_TOTAL - WC_DISCOUNT_AMOUNT) * 100) / 100;
@@ -1292,12 +1293,20 @@ const wcPlanFee = (months: number) => Math.round(WC_FINANCED_PRINCIPAL * wcPlanF
 const wcPlanTotal = (months: number) => Math.round((WC_DISCOUNTED_TOTAL + wcPlanFee(months)) * 100) / 100;
 const wcPlanMonthly = (months: number) => Math.round(((WC_FINANCED_PRINCIPAL + wcPlanFee(months)) / months) * 100) / 100;
 const wcPlanToday = (months: number) => Math.round((WC_DOWN_PAYMENT + wcPlanMonthly(months)) * 100) / 100;
-// Deep link into the Tasheel iOS app (scheme `tasheel`, bundle com.tasheel.app).
-// Nothing happens if the app is not installed, so the sheet stays open and the
-// shopper can still fall back to the merchant page.
-const wcOpenTasheelApp = () => {
+// Deep link into the native Tasheel SwiftUI app. Nothing happens if the app is
+// not installed, so the current web screen remains available as a fallback.
+const wcOpenTasheelApp = (destination = 'tasheel://bnpl') => {
   if (typeof window === 'undefined') return;
-  try { window.location.href = 'tasheel://'; } catch { /* scheme unsupported */ }
+  try { window.location.href = destination; } catch { /* scheme unsupported */ }
+};
+const wcPurchaseDeepLink = (months: number) => {
+  const params = new URLSearchParams({
+    orderRef: WC_ORDER_REFERENCE,
+    amount: WC_DISCOUNTED_TOTAL.toFixed(2),
+    months: String(months),
+    merchant: 'extrastores',
+  });
+  return `tasheel://bnpl/plan-detail?${params.toString()}`;
 };
 const wcAdjacentTenure = (months: number, offset: -1 | 1) => {
   const index = WC_TENURES.indexOf(months as (typeof WC_TENURES)[number]);
@@ -1950,7 +1959,6 @@ function WcProcessing({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 // handoff is an explicit tap rather than a timed redirect, because iOS only
 // honours a custom-scheme navigation that comes from a real user gesture.
 function WcSuccess({ months }: { months: number }) {
-  const [reference] = useState(() => `EXT-2026-${10000 + Math.floor(Math.random() * 89999)}`);
   return (
     <AppShell scroll={!SHOW_FAKE_CHROME}>
       <View testID="wc-success-1691-67703" style={SHOW_FAKE_CHROME ? styles.wcObScreenFixed : [styles.wcObScreen, { flex: 1 }]}>
@@ -1974,7 +1982,7 @@ function WcSuccess({ months }: { months: number }) {
             <View style={styles.reviewDivider} />
             <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>First payment</Text><Text style={styles.wcSuccessValue}>July 1st, 2026</Text></View>
             <View style={styles.reviewDivider} />
-            <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Reference</Text><Text style={styles.wcSuccessValue}>{reference}</Text></View>
+            <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Reference</Text><Text style={styles.wcSuccessValue}>{WC_ORDER_REFERENCE}</Text></View>
           </View>
           <View style={[styles.wcSuccessCard, { gap: 10 }]}>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
@@ -1989,7 +1997,7 @@ function WcSuccess({ months }: { months: number }) {
               <Image source={figmaImageSource('wcBadgeGooglePlay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 91, height: 27 }} />
             </View>
           </View>
-          <Pressable testID="wc-success-open-app" style={styles.wcGreenCta} onPress={wcOpenTasheelApp} accessibilityRole="button" accessibilityLabel="Open the Tasheel app to view your plan">
+          <Pressable testID="wc-success-open-app" style={styles.wcGreenCta} onPress={() => wcOpenTasheelApp(wcPurchaseDeepLink(months))} accessibilityRole="button" accessibilityLabel="Open the Tasheel app to view your plan">
             <Text style={styles.wcGreenCtaText}>Open the Tasheel app</Text>
           </Pressable>
         </View>
@@ -2042,7 +2050,7 @@ function WcNotification({ setRoute, months }: { setRoute: (r: RouteKey) => void;
         <Text style={styles.wcLockDate}>{dateLine}</Text>
         <Text style={styles.wcLockClock}>{clock}</Text>
         <Animated.View style={[styles.wcNotifBanner, { backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)' } as object, { opacity: drop, transform: [{ translateY: drop.interpolate({ inputRange: [0, 1], outputRange: [-120, 0] }) }] }]}>
-          <Pressable testID="wc-notification-banner" style={styles.wcNotifInner} onPress={wcOpenTasheelApp} accessibilityRole="button" accessibilityLabel="Open the Tasheel app">
+          <Pressable testID="wc-notification-banner" style={styles.wcNotifInner} onPress={() => wcOpenTasheelApp(wcPurchaseDeepLink(months))} accessibilityRole="button" accessibilityLabel="Open the Tasheel app">
             <View style={styles.wcNotifAppIcon}><TasheelMark size={26} /></View>
             <View style={{ flex: 1, gap: 1 }}>
               <View style={styles.wcNotifTitleRow}>
