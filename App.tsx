@@ -1945,17 +1945,12 @@ function WcProcessing({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   );
 }
 
-// Figma 1691:67703 — Purchase Successful with live plan data and redirect countdown.
-function WcSuccess({ setRoute, months }: { setRoute: (r: RouteKey) => void; months: number }) {
-  const [seconds, setSeconds] = useState(6);
+// Figma 1691:67703 — Purchase Successful with live plan data. This is the last
+// web screen: the flow hands off to the installed Tasheel app from here. The
+// handoff is an explicit tap rather than a timed redirect, because iOS only
+// honours a custom-scheme navigation that comes from a real user gesture.
+function WcSuccess({ months }: { months: number }) {
   const [reference] = useState(() => `EXT-2026-${10000 + Math.floor(Math.random() * 89999)}`);
-  useEffect(() => {
-    const tick = setInterval(() => setSeconds(s => Math.max(0, s - 1)), 1000);
-    return () => clearInterval(tick);
-  }, []);
-  useEffect(() => {
-    if (seconds === 0) setRoute('wcNotification');
-  }, [seconds, setRoute]);
   return (
     <AppShell scroll={!SHOW_FAKE_CHROME}>
       <View testID="wc-success-1691-67703" style={SHOW_FAKE_CHROME ? styles.wcObScreenFixed : [styles.wcObScreen, { flex: 1 }]}>
@@ -1994,8 +1989,8 @@ function WcSuccess({ setRoute, months }: { setRoute: (r: RouteKey) => void; mont
               <Image source={figmaImageSource('wcBadgeGooglePlay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 91, height: 27 }} />
             </View>
           </View>
-          <Pressable testID="wc-success-redirect" onPress={() => setRoute('wcNotification')} accessibilityRole="button">
-            <Text style={styles.wcRedirectText}>Redirecting to Extrastores ({seconds}secs)</Text>
+          <Pressable testID="wc-success-open-app" style={styles.wcGreenCta} onPress={wcOpenTasheelApp} accessibilityRole="button" accessibilityLabel="Open the Tasheel app to view your plan">
+            <Text style={styles.wcGreenCtaText}>Open the Tasheel app</Text>
           </Pressable>
         </View>
         <View style={styles.wcObBottom}>
@@ -4021,7 +4016,7 @@ export default function App() {
   if (route === 'wcTenure') return <WcTenure setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} />;
   if (route === 'wcPayment') return <WcPayment setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} />;
   if (route === 'wcProcessing') return <WcProcessing setRoute={setRoute} />;
-  if (route === 'wcSuccess') return <WcSuccess setRoute={setRoute} months={wcMonths} />;
+  if (route === 'wcSuccess') return <WcSuccess months={wcMonths} />;
   if (route === 'wcNotification') return <WcNotification setRoute={setRoute} months={wcMonths} />;
   if (route === 'saLogin') return <SaLogin setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} />;
   if (route === 'saOtp') return <SaOtp setRoute={setRoute} phone={wcPhone} />;
