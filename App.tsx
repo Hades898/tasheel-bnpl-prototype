@@ -1345,7 +1345,6 @@ function WcHijriDobSheet({ initialIso, onCancel, onConfirm }: { initialIso: stri
 function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   const [idNumber, setIdNumber] = useState('');
   const [dob, setDob] = useState(''); // yyyy-mm-dd from the native date input
-  const [hijriPickerOpen, setHijriPickerOpen] = useState(false);
   const dobRef = useRef<HTMLInputElement | null>(null);
   // Saudi national IDs start with 1 (Hijri birth records); iqama numbers start
   // with 2 (Gregorian). The calendar display follows the ID prefix automatically.
@@ -1379,31 +1378,32 @@ function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
               </View>
               <View style={{ gap: 12, width: '100%' }}>
                 <Text style={styles.wcFieldLabel}>Date of Birth{useHijri ? ' (Hijri)' : ''}</Text>
-                {useHijri ? (
-                  <Pressable testID="wc-dob-hijri-field" style={styles.wcInputRow} onPress={() => setHijriPickerOpen(true)} accessibilityRole="button" accessibilityLabel="Pick date of birth (Hijri)">
-                    <Text testID="wc-dob-hijri-label" numberOfLines={1} style={[styles.wcHijriOverlayText, { flex: 1 }, !dob && { color: '#4b5563' }]}>
-                      {dob ? formatHijri(dob) : 'Pick your birth date'}
-                    </Text>
+                <View style={styles.wcInputRow}>
+                  {/* Native date input in BOTH modes — on a device whose system
+                      calendar is Umm al-Qura, iOS renders the picker in Hijri.
+                      In Hijri mode the raw value is hidden and the converted
+                      Umm al-Qura date is overlaid instead. */}
+                  {createElement('input', {
+                    'data-testid': 'wc-dob-input',
+                    type: 'date',
+                    ref: dobRef,
+                    value: dob,
+                    min: '1940-01-01',
+                    max: '2008-12-31',
+                    onChange: (e: { target: { value: string } }) => setDob(e.target.value),
+                    style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: useHijri ? 'transparent' : dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
+                  })}
+                  {useHijri ? (
+                    <View pointerEvents="none" style={styles.wcHijriOverlay}>
+                      <Text testID="wc-dob-hijri-label" numberOfLines={1} style={[styles.wcHijriOverlayText, !dob && { color: '#4b5563' }]}>
+                        {dob ? formatHijri(dob) : 'Pick your birth date'}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
                     <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
                   </Pressable>
-                ) : (
-                  <View style={styles.wcInputRow}>
-                    {/* Native date input so iOS presents its own calendar/wheel picker. */}
-                    {createElement('input', {
-                      'data-testid': 'wc-dob-input',
-                      type: 'date',
-                      ref: dobRef,
-                      value: dob,
-                      min: '1940-01-01',
-                      max: '2008-12-31',
-                      onChange: (e: { target: { value: string } }) => setDob(e.target.value),
-                      style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
-                    })}
-                    <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
-                      <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
-                    </Pressable>
-                  </View>
-                )}
+                </View>
               </View>
               <Pressable testID="wc-identity-confirm" disabled={!valid} style={[styles.wcGreenCta, { width: '100%' }, !valid && styles.wcGreenCtaDisabled]} onPress={() => valid && setRoute('wcNafath')} accessibilityRole="button" accessibilityState={{ disabled: !valid }}>
                 <Text style={[styles.wcGreenCtaText, !valid && styles.wcGreenCtaTextDisabled]}>Confirm</Text>
@@ -1414,7 +1414,6 @@ function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
             <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcOtp')} />
           </View>
         </ScreenFade>
-        {hijriPickerOpen ? <WcHijriDobSheet initialIso={dob} onCancel={() => setHijriPickerOpen(false)} onConfirm={(iso) => { setDob(iso); setHijriPickerOpen(false); }} /> : null}
         <View style={styles.wcStatusOverlay} pointerEvents="none"><StatusStrip pointerEvents="none" /></View>
       </View>
     </AppShell>
