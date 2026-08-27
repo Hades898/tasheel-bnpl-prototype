@@ -4353,6 +4353,14 @@ export default function App() {
         planMin: 2,
         aria: `Split the cost with Tasheel and pay nothing extra: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
       }
+    : wcFlow === 'existing'
+    ? {
+        title: 'Win 100% of it back.',
+        body: `Transact today and get a chance to get back 100% of your transaction value.`,
+        planMax: 36,
+        planMin: 4,
+        aria: `Continue with Tasheel Finance: transact today and get a chance to get back 100 percent of your transaction value`,
+      }
     : {
         title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
         body: `Save up to 10% off your cart and pay over up to 36 months.`,
