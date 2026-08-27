@@ -1233,9 +1233,119 @@ const formatHijri = (isoDate: string) => {
   }
 };
 
+// --- Umm al-Qura ⇄ Gregorian math (exact, powered by Intl islamic-umalqura) ---
+const HIJRI_MONTHS = ['Muharram', 'Safar', "Rabi' I", "Rabi' II", 'Jumada I', 'Jumada II', 'Rajab', "Sha'ban", 'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'];
+const HIJRI_NUM_FMT = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'numeric', year: 'numeric' });
+const hijriPartsOf = (date: Date) => {
+  const parts = HIJRI_NUM_FMT.formatToParts(date);
+  const get = (type: string) => Number(parts.find(p => p.type === type)?.value ?? 0);
+  return { y: get('year'), m: get('month'), d: get('day') };
+};
+const DAY_MS = 86400000;
+// Walk a first-guess Gregorian date until its Umm al-Qura parts match exactly.
+const hijriToGregorian = (hy: number, hm: number, hd: number): Date => {
+  let guess = new Date(Date.UTC(622, 6, 19) + Math.round(((hy - 1) * 354.367 + (hm - 1) * 29.53 + (hd - 1)) * DAY_MS));
+  for (let i = 0; i < 90; i++) {
+    const p = hijriPartsOf(guess);
+    if (p.y === hy && p.m === hm && p.d === hd) return guess;
+    const diffDays = (hy - p.y) * 354.367 + (hm - p.m) * 29.53 + (hd - p.d);
+    const step = Math.abs(diffDays) >= 1 ? Math.round(diffDays) : Math.sign(diffDays) || 1;
+    guess = new Date(guess.getTime() + step * DAY_MS);
+  }
+  return guess;
+};
+const daysInHijriMonth = (hy: number, hm: number) => {
+  const first = hijriToGregorian(hy, hm, 1);
+  return hijriPartsOf(new Date(first.getTime() + 29 * DAY_MS)).m === hm ? 30 : 29;
+};
+const gregorianIso = (date: Date) => date.toISOString().slice(0, 10);
+
+// Single-popup Hijri date-of-birth picker: the three iOS wheels (day/month/year)
+// in one sheet, snapped scrolling, exact Umm al-Qura dates.
+const WHEEL_ROW = 36;
+const WHEEL_VISIBLE = 5;
+function WcHijriWheel({ items, index, onChange }: { items: string[]; index: number; onChange: (i: number) => void }) {
+  const ref = useRef<ScrollView | null>(null);
+  const settle = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastY = useRef(index * WHEEL_ROW);
+  useEffect(() => {
+    const target = index * WHEEL_ROW;
+    if (Math.abs(lastY.current - target) > 1) {
+      requestAnimationFrame(() => ref.current?.scrollTo({ y: target, animated: false }));
+    }
+  }, [index]);
+  return (
+    <View style={styles.wcWheelCol}>
+      <ScrollView
+        ref={ref}
+        style={{ height: WHEEL_ROW * WHEEL_VISIBLE }}
+        contentContainerStyle={{ paddingVertical: WHEEL_ROW * 2 }}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={(e) => {
+          const y = e.nativeEvent.contentOffset.y;
+          lastY.current = y;
+          if (settle.current) clearTimeout(settle.current);
+          settle.current = setTimeout(() => {
+            const idx = Math.min(items.length - 1, Math.max(0, Math.round(y / WHEEL_ROW)));
+            if (Math.abs(y - idx * WHEEL_ROW) > 1) ref.current?.scrollTo({ y: idx * WHEEL_ROW, animated: true });
+            onChange(idx);
+          }, 120);
+        }}
+      >
+        {items.map((label, i) => (
+          <Pressable key={`${label}-${i}`} onPress={() => { ref.current?.scrollTo({ y: i * WHEEL_ROW, animated: true }); onChange(i); }} style={styles.wcWheelRow}>
+            <Text style={[styles.wcWheelText, i === index && styles.wcWheelTextActive]}>{label}</Text>
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
+}
+
+function WcHijriDobSheet({ initialIso, onCancel, onConfirm }: { initialIso: string; onCancel: () => void; onConfirm: (iso: string) => void }) {
+  const rise = useRef(new Animated.Value(0)).current;
+  const closing = useRef(false);
+  const initial = hijriPartsOf(initialIso ? new Date(`${initialIso}T12:00:00`) : hijriToGregorian(1415, 1, 1));
+  const [hy, setHy] = useState(initial.y);
+  const [hm, setHm] = useState(initial.m);
+  const [hd, setHd] = useState(initial.d);
+  const years = Array.from({ length: 70 }, (_, i) => 1361 + i); // ≈ Gregorian 1942–2010
+  const maxDay = daysInHijriMonth(hy, hm);
+  const day = Math.min(hd, maxDay);
+  useEffect(() => {
+    Animated.timing(rise, { toValue: 1, duration: 280, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
+  }, [rise]);
+  const dismiss = (after?: () => void) => {
+    if (closing.current) return;
+    closing.current = true;
+    Animated.timing(rise, { toValue: 0, duration: 240, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => (after ?? onCancel)());
+  };
+  return (
+    <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
+      <Pressable style={styles.wcPickerScrim} onPress={() => dismiss()} accessibilityRole="button" accessibilityLabel="Close date picker" />
+      <Animated.View testID="wc-hijri-sheet" style={[styles.wcDetailsSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [360, 0] }) }] }]}>
+        <View style={styles.sheetGrabber} />
+        <Text style={styles.wcDetailsTitle}>Date of Birth</Text>
+        <Text style={styles.wcDetailsDim}>{day} {HIJRI_MONTHS[hm - 1]} {hy} AH</Text>
+        <View style={styles.wcWheelStage}>
+          <View pointerEvents="none" style={styles.wcWheelBand} />
+          <WcHijriWheel items={Array.from({ length: maxDay }, (_, i) => String(i + 1))} index={day - 1} onChange={(i) => setHd(i + 1)} />
+          <WcHijriWheel items={HIJRI_MONTHS} index={hm - 1} onChange={(i) => setHm(i + 1)} />
+          <WcHijriWheel items={years.map(String)} index={Math.max(0, years.indexOf(hy))} onChange={(i) => setHy(years[i])} />
+        </View>
+        <Pressable testID="wc-hijri-confirm" style={styles.wcGreenCta} onPress={() => dismiss(() => onConfirm(gregorianIso(hijriToGregorian(hy, hm, day))))} accessibilityRole="button">
+          <Text style={styles.wcGreenCtaText}>Confirm</Text>
+        </Pressable>
+      </Animated.View>
+    </View></ViewportLayer>
+  );
+}
+
 function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   const [idNumber, setIdNumber] = useState('');
   const [dob, setDob] = useState(''); // yyyy-mm-dd from the native date input
+  const [hijriPickerOpen, setHijriPickerOpen] = useState(false);
   const dobRef = useRef<HTMLInputElement | null>(null);
   // Saudi national IDs start with 1 (Hijri birth records); iqama numbers start
   // with 2 (Gregorian). The calendar display follows the ID prefix automatically.
@@ -1269,31 +1379,31 @@ function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
               </View>
               <View style={{ gap: 12, width: '100%' }}>
                 <Text style={styles.wcFieldLabel}>Date of Birth{useHijri ? ' (Hijri)' : ''}</Text>
-                <View style={styles.wcInputRow}>
-                  {/* Native date input so iOS presents its own calendar/wheel picker.
-                      In Hijri mode the raw value is hidden and the converted
-                      Umm al-Qura date is overlaid instead. */}
-                  {createElement('input', {
-                    'data-testid': 'wc-dob-input',
-                    type: 'date',
-                    ref: dobRef,
-                    value: dob,
-                    min: '1940-01-01',
-                    max: '2008-12-31',
-                    onChange: (e: { target: { value: string } }) => setDob(e.target.value),
-                    style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: useHijri ? 'transparent' : dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
-                  })}
-                  {useHijri ? (
-                    <View pointerEvents="none" style={styles.wcHijriOverlay}>
-                      <Text testID="wc-dob-hijri-label" numberOfLines={1} style={[styles.wcHijriOverlayText, !dob && { color: '#4b5563' }]}>
-                        {dob ? formatHijri(dob) : 'Pick your birth date'}
-                      </Text>
-                    </View>
-                  ) : null}
-                  <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
+                {useHijri ? (
+                  <Pressable testID="wc-dob-hijri-field" style={styles.wcInputRow} onPress={() => setHijriPickerOpen(true)} accessibilityRole="button" accessibilityLabel="Pick date of birth (Hijri)">
+                    <Text testID="wc-dob-hijri-label" numberOfLines={1} style={[styles.wcHijriOverlayText, { flex: 1 }, !dob && { color: '#4b5563' }]}>
+                      {dob ? formatHijri(dob) : 'Pick your birth date'}
+                    </Text>
                     <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
                   </Pressable>
-                </View>
+                ) : (
+                  <View style={styles.wcInputRow}>
+                    {/* Native date input so iOS presents its own calendar/wheel picker. */}
+                    {createElement('input', {
+                      'data-testid': 'wc-dob-input',
+                      type: 'date',
+                      ref: dobRef,
+                      value: dob,
+                      min: '1940-01-01',
+                      max: '2008-12-31',
+                      onChange: (e: { target: { value: string } }) => setDob(e.target.value),
+                      style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
+                    })}
+                    <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
+                      <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
+                    </Pressable>
+                  </View>
+                )}
               </View>
               <Pressable testID="wc-identity-confirm" disabled={!valid} style={[styles.wcGreenCta, { width: '100%' }, !valid && styles.wcGreenCtaDisabled]} onPress={() => valid && setRoute('wcNafath')} accessibilityRole="button" accessibilityState={{ disabled: !valid }}>
                 <Text style={[styles.wcGreenCtaText, !valid && styles.wcGreenCtaTextDisabled]}>Confirm</Text>
@@ -1304,6 +1414,7 @@ function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
             <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcOtp')} />
           </View>
         </ScreenFade>
+        {hijriPickerOpen ? <WcHijriDobSheet initialIso={dob} onCancel={() => setHijriPickerOpen(false)} onConfirm={(iso) => { setDob(iso); setHijriPickerOpen(false); }} /> : null}
         <View style={styles.wcStatusOverlay} pointerEvents="none"><StatusStrip pointerEvents="none" /></View>
       </View>
     </AppShell>
@@ -4516,6 +4627,12 @@ const styles = StyleSheet.create({
   wcOtpBoxError: { borderWidth: 1, borderColor: '#ec221f', shadowColor: 'rgba(236,34,31,1)', shadowOpacity: 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 8 } },
   wcOtpErrorText: { width: '100%', marginTop: -8, fontSize: 12, lineHeight: 16, color: '#6e0f0d' },
   wcSuccessRedirect: { textAlign: 'center', fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted, marginTop: 4 },
+  wcWheelStage: { flexDirection: 'row', gap: 4, position: 'relative', marginVertical: 4 },
+  wcWheelCol: { flex: 1 },
+  wcWheelRow: { height: 36, alignItems: 'center', justifyContent: 'center' },
+  wcWheelText: { fontSize: 15, letterSpacing: -0.24, color: '#9ca3af' },
+  wcWheelTextActive: { color: '#030712', fontWeight: '600' },
+  wcWheelBand: { position: 'absolute', left: 0, right: 0, top: 72, height: 36, borderRadius: 10, backgroundColor: '#f3f4f6' },
   wcHijriOverlay: { position: 'absolute', left: 16, right: 52, top: 0, bottom: 0, justifyContent: 'center' },
   wcHijriOverlayText: { fontSize: 15, letterSpacing: -0.24, color: '#030712' },
   wcSchedBackBtn: { width: 36, height: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(249,250,251,0.75)', borderWidth: 1, borderColor: '#ffffff', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 2 } },
