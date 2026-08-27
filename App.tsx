@@ -25,7 +25,8 @@ import Svg, {
   Stop,
 } from 'react-native-svg';
 
-type RouteKey = 'checkout' | 'saLogin' | 'saOtp' | 'saAddCard' | 'superHome' | 'appHome' | 'detail' | 'insights' | 'insightsCategory' | 'insightsEmpty' | 'purchases' | 'dues' | 'nextUp' | 'paymentMethod' | 'paymentSelected' | 'addCard' | 'cardAdded' | 'otp' | 'processing' | 'insufficient' | 'declined' | 'success'
+type WcFlow = 'existing' | 'new';
+type RouteKey = 'gate' | 'checkout' | 'saLogin' | 'saOtp' | 'saAddCard' | 'superHome' | 'appHome' | 'detail' | 'insights' | 'insightsCategory' | 'insightsEmpty' | 'purchases' | 'dues' | 'nextUp' | 'paymentMethod' | 'paymentSelected' | 'addCard' | 'cardAdded' | 'otp' | 'processing' | 'insufficient' | 'declined' | 'success'
   | 'wcMobile' | 'wcOtp' | 'wcIdentity' | 'wcNafath' | 'wcQuickCall' | 'wcTenure' | 'wcPayment' | 'wcProcessing' | 'wcSuccess' | 'wcNotification';
 type PayMethod = 'card' | 'apple';
 type Merchant = 'extra' | 'jarir' | 'noon';
@@ -193,6 +194,8 @@ if (typeof document !== 'undefined') {
       // left-align the iOS date-input value to match the other form fields.
       `#root input:focus,#root textarea:focus{outline:none !important;box-shadow:none !important;}`,
       `input::-webkit-date-and-time-value{text-align:left;}`,
+      // The DOB field draws its own calendar icon; hide the browser's built-in one.
+      `input[type="date"]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none;opacity:0;}`,
       `[data-saviewport="1"]{padding-bottom:0 !important;padding-top:0 !important;}`,
     ].join('');
     document.head.appendChild(el);
@@ -250,6 +253,8 @@ const figmaAssets = {
   wcInfoCircle: '/figma/wcInfoCircle.svg',
   wcRocket: '/figma/wcRocket.png',
   wcQuickCallArt: '/figma/wcQuickCallArt.jpg',
+  // Full-bleed incoming-call hero from the updated quick-call design (Figma 3299:37747).
+  wcQuickCallHero: '/figma/wcQuickCallHero.png',
   wcBadgeAppStore: '/figma/wcBadgeAppStore.png',
   wcSmegFridge: '/figma/wcSmegFridge.jpg',
   wcBadgeGooglePlay: '/figma/wcBadgeGooglePlay.png',
@@ -261,6 +266,14 @@ const figmaAssets = {
   paymentSuccessMerchant: '/figma/paymentSuccessMerchant.png',
   browserReload: '/figma/browserReload.svg',
   browserSiteSettings: '/figma/browserSiteSettings.svg',
+  // Sale tag icon from the Choose-plan list redesign (Figma 4406:63560).
+  wcSaleTag: '/figma/wcSaleTag.svg',
+  wcSaleTagGreen: '/figma/wcSaleTagGreen.svg',
+  // Consent checkbox checkmark (Figma 4406:63820 — Terms and conditions).
+  wcCheckboxCheck: '/figma/wcCheckboxCheck.svg',
+  // Black Apple Pay CTA pieces (Figma 3477:75321 — Apple pay).
+  wcAppleLogoWhite: '/figma/wcAppleLogoWhite.svg',
+  wcRiyalWhite: '/figma/wcRiyalWhite.svg',
   // --- Superapp landing page (Figma 2741:27487) ---
   saHeroFitbit: '/figma/sa_heroFitbit.png',
   saFitbitLogo: '/figma/sa_fitbitLogo.png',
@@ -378,7 +391,10 @@ const routeFromPath = (path: string): RouteKey => {
   if (path.includes('/checkout/declined')) return 'declined';
   if (path.includes('/checkout/success')) return 'success';
   if (path.includes('/checkout/dues')) return 'dues';
-  return 'checkout';
+  if (path.includes('/demos')) return 'gate';
+  if (path.includes('/checkout')) return 'checkout';
+  // Bare prototype root lands on the demo picker.
+  return 'gate';
 };
 
 function currentPath() {
@@ -684,6 +700,67 @@ function Header({ title, subtitle, showLogo, rightClose, onBack, onClose }: { ti
 }
 
 // ---------------------------------------------------------------------------
+// Demo gate — the prototype's front door: pick which demo journey to walk.
+
+function DemoGate({ startDemo }: { startDemo: (flow: WcFlow, product: WcProduct) => void }) {
+  const [product, setProduct] = useState<WcProduct | null>(null);
+  return (
+    <AppShell>
+      <View style={styles.gateScreen}>
+        <ScreenFade>
+          <View style={styles.gateBody}>
+            <Image source={figmaImageSource('wcTasheelLogo')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.gateLogo} />
+            {product === null ? (
+              <>
+                <View style={{ gap: 8 }}>
+                  <Text style={styles.gateTitle}>Pick a transaction</Text>
+                  <Text style={styles.gateSub}>Choose the product to demo. You will pick the customer next.</Text>
+                </View>
+                <View style={{ gap: 14 }}>
+                  <Pressable testID="gate-bnpl" onPress={() => setProduct('bnpl')} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardPrimary, pressed && { opacity: 0.9 }]}>
+                    <Text style={styles.gateCardPrimaryTitle}>BNPL transaction</Text>
+                    <Text style={styles.gateCardPrimarySub}>Short interest-free plans. 0 fees, 0 interest.</Text>
+                    <Text style={styles.gateCardPrimaryCta}>Next →</Text>
+                  </Pressable>
+                  <Pressable testID="gate-bnpl-plus" onPress={() => setProduct('plus')} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardSecondary, pressed && { opacity: 0.9 }]}>
+                    <Text style={styles.gateCardSecondaryTitle}>BNPL Plus transaction</Text>
+                    <Text style={styles.gateCardSecondarySub}>Extended financing with tenures up to 36 months.</Text>
+                    <Text style={styles.gateCardSecondaryCta}>Next →</Text>
+                  </Pressable>
+                </View>
+              </>
+            ) : (
+              <>
+                <View style={{ gap: 8 }}>
+                  <Text style={styles.gateTitle}>Who's the customer?</Text>
+                  <Text style={styles.gateSub}>{product === 'bnpl' ? 'BNPL transaction' : 'BNPL Plus transaction'} · both journeys start from the Extrastores checkout.</Text>
+                </View>
+                <View style={{ gap: 14 }}>
+                  <Pressable testID="gate-existing" onPress={() => startDemo('existing', product)} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardPrimary, pressed && { opacity: 0.9 }]}>
+                    <Text style={styles.gateCardPrimaryTitle}>Existing user demo</Text>
+                    <Text style={styles.gateCardPrimarySub}>Returning customer: mobile, OTP, quick call, plan and payment.</Text>
+                    <Text style={styles.gateCardPrimaryCta}>Start →</Text>
+                  </Pressable>
+                  <Pressable testID="gate-new-user" onPress={() => startDemo('new', product)} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardSecondary, pressed && { opacity: 0.9 }]}>
+                    <Text style={styles.gateCardSecondaryTitle}>New user demo</Text>
+                    <Text style={styles.gateCardSecondarySub}>First-time customer: full onboarding with identity verification and Nafath.</Text>
+                    <Text style={styles.gateCardSecondaryCta}>Start →</Text>
+                  </Pressable>
+                </View>
+                <Pressable testID="gate-back" onPress={() => setProduct(null)} accessibilityRole="button" hitSlop={8}>
+                  <Text style={styles.gateBackText}>← Back to transaction type</Text>
+                </Pressable>
+              </>
+            )}
+          </View>
+        </ScreenFade>
+        <View style={styles.wcStatusOverlay} pointerEvents="none"><StatusStrip pointerEvents="none" /></View>
+      </View>
+    </AppShell>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Checkout — neutral merchant web checkout (Figma 355:58228)
 // ---------------------------------------------------------------------------
 // ---------------------------------------------------------------------------
@@ -703,32 +780,13 @@ function ScreenFade({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Safari compact tab bar (Figma 1613:21847) — system UI, so it re-scopes to SF Pro.
-// On a real iOS device Safari provides the actual chrome, so rendering ours would
-// double it; collapse to a small bottom spacer instead.
+// Safari compact tab bar (Figma 1613:21847) — retired: the prototype is tested on
+// real mobile Safari, which draws its own chrome, so the fake bar is never rendered.
+// Kept as a bottom spacer so screen layouts keep their breathing room.
 function SafariCompactBar({ url, onBack }: { url: string; onBack?: () => void }) {
-  if (!SHOW_FAKE_CHROME) return <View style={{ height: 24 }} />;
-  const blurStyle = { backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' } as object;
-  return (
-    <View style={styles.wcSafariWrap} {...({ dataSet: { surface: 'app' } } as object)}>
-      <View style={styles.wcSafariRow}>
-        <Pressable onPress={onBack} disabled={!onBack} style={[styles.wcSafariCircle, blurStyle]} accessibilityRole="button" accessibilityLabel="Browser back">
-          <Text style={styles.wcSafariGlyph}>‹</Text>
-        </Pressable>
-        <View style={[styles.wcSafariSearch, blurStyle]}>
-          <Image source={figmaImageSource('browserSiteSettings')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSafariSiteIcon} />
-          <Text numberOfLines={1} style={styles.wcSafariUrl}>{url}</Text>
-          <Image source={figmaImageSource('browserReload')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSafariReloadIcon} />
-        </View>
-        <View style={[styles.wcSafariCircle, blurStyle]}>
-          <Text style={styles.wcSafariGlyph}>⋯</Text>
-        </View>
-      </View>
-      <View style={styles.wcSafariBottom}>
-        {SHOW_FAKE_CHROME ? <View style={styles.wcHomeIndicatorBar} /> : null}
-      </View>
-    </View>
-  );
+  void url;
+  void onBack;
+  return <View style={{ height: 24 }} />;
 }
 
 function WcPayOption({ label, sub, selected, onPress }: { label: string; sub?: string; selected?: boolean; onPress?: () => void }) {
@@ -757,7 +815,7 @@ function XPayRow({ label, icon, selected, onPress }: { label: string; icon: Figm
 // Merchant entry — extra.com product page mimic (SMEG MP00015644), with Tasheel
 // replacing Baseeta in the "Shop now, pay later!" section. Real product image/price
 // from extra.com; tabby/tamara figures are the live site's values for this product.
-function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
+function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer: { title: string; body: string; planMax: number; planMin: number; aria: string } }) {
   const [added, setAdded] = useState(false);
   const [checkoutMethod, setCheckoutMethod] = useState<'card' | 'apple' | 'tasheel'>('tasheel');
   const [howOpen, setHowOpen] = useState(false);
@@ -767,7 +825,14 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
       <ScreenFade>
       <View testID="wc-merchant-pdp" style={styles.xPage}>
         <View style={styles.xHeader}>
-          <Pressable style={styles.xHeaderSide} onPress={() => added && setAdded(false)} accessibilityRole="button" accessibilityLabel={added ? 'Back to product' : 'Back'}>
+          <Pressable
+            testID="wc-merchant-back"
+            style={styles.xHeaderSide}
+            hitSlop={12}
+            onPress={() => (added ? setAdded(false) : setRoute('gate'))}
+            accessibilityRole="button"
+            accessibilityLabel={added ? 'Back to product' : 'Back to demo selection'}
+          >
             <Svg width={22} height={22} viewBox="0 0 24 24"><Path d="M14.5 5 8 12l6.5 7" fill="none" stroke="#13316b" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
           </Pressable>
           <Image source={figmaImageSource('extraLogo')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 46, height: 34 }} />
@@ -788,11 +853,11 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
                 <Text style={styles.xCartProductTitle}>50's Retro Style Refrigerator</Text>
                 <Text style={styles.xCartMeta}>Right Handle · Black · Qty 1</Text>
               </View>
-              <Money amount={wcMoney(WC_CART_TOTAL)} size={16} weight="700" />
+              <Money amount={wcMoney(wcCartTotalNow())} size={16} weight="700" />
             </View>
             <View style={styles.xCartSummary}>
               <Text style={styles.xCartSummaryLabel}>Order total</Text>
-              <Money amount={wcMoney(WC_CART_TOTAL)} size={20} weight="700" />
+              <Money amount={wcMoney(wcCartTotalNow())} size={20} weight="700" />
             </View>
             <Text style={styles.xCartSectionTitle}>Payment option</Text>
             <View style={{ gap: 12 }}>
@@ -806,7 +871,7 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
             <Pressable
               testID="wc-tasheel-offer"
               accessibilityRole="button"
-              accessibilityLabel={`Continue with Tasheel Finance, instant 10 percent off, pay ${wcMoney(WC_DISCOUNTED_TOTAL)} instead of ${wcMoney(WC_CART_TOTAL)}`}
+              accessibilityLabel={offer.aria}
               onPress={() => { setCheckoutMethod('tasheel'); setRoute('wcMobile'); }}
               style={[styles.xOfferCard, checkoutMethod === 'tasheel' && styles.xOfferCardSelected]}
             >
@@ -816,18 +881,16 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
                   {checkoutMethod === 'tasheel' ? <View style={styles.xOfferRadioDot} /> : null}
                 </View>
               </View>
-              <Text style={styles.xOfferTitle}>Split your purchases your way!</Text>
-              <Text style={styles.xOfferBody}>
-                Instant 10% off your order — pay {wcMoney(WC_DISCOUNTED_TOTAL)} instead of {wcMoney(WC_CART_TOTAL)}, in up to {WC_TENURES[WC_TENURES.length - 1]} payments.
-              </Text>
-              <Pressable onPress={() => setHowOpen((v) => !v)} accessibilityRole="button" accessibilityLabel="How does Tasheel Finance work?" hitSlop={6}>
-                <Text style={styles.xOfferLink}>{howOpen ? 'Hide details' : 'How does it work?'}</Text>
+              <Text style={styles.xOfferTitle}>{offer.title}</Text>
+              <Text style={styles.xOfferBody}>{offer.body}</Text>
+              <Pressable onPress={() => setHowOpen((v) => !v)} accessibilityRole="button" accessibilityLabel="Learn more about Tasheel Finance" hitSlop={6}>
+                <Text style={styles.xOfferLink}>{howOpen ? 'Hide details' : 'Learn more'}</Text>
               </Pressable>
               {howOpen ? (
                 <View style={styles.xOfferSteps}>
                   {[
                     'Verify your number and ID — takes about a minute.',
-                    `Pick a plan from 2 to ${WC_TENURES[WC_TENURES.length - 1]} months.`,
+                    `Pick a plan from ${offer.planMin} to ${offer.planMax} months.`,
                     'Pay the first instalment now, the rest on schedule.',
                   ].map((line, i) => (
                     <View key={line} style={styles.xOfferStepRow}>
@@ -842,13 +905,13 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
               <View style={styles.xRivalCard}>
                 <View style={styles.xTabbyChip}><Text style={styles.xTabbyText}>tabby</Text></View>
                 <Text style={styles.xRivalTitle}>Pace your payments</Text>
-                <Text style={styles.xRivalBody}>4 monthly payments of {wcMoney(WC_CART_TOTAL / 4)}, interest-free.</Text>
+                <Text style={styles.xRivalBody}>4 monthly payments of {wcMoney(wcCartTotalNow() / 4)}, interest-free.</Text>
                 <Text style={styles.xRivalLink}>Learn more</Text>
               </View>
               <View style={styles.xRivalCard}>
                 <View style={styles.xTamaraChip}><Text style={styles.xTamaraText}>tamara</Text></View>
                 <Text style={styles.xRivalTitle}>Shop & split with tamara</Text>
-                <Text style={styles.xRivalBody}>Up to 24 months from {wcMoney(WC_CART_TOTAL / 24)} — or pay in 4. Sharia-compliant.</Text>
+                <Text style={styles.xRivalBody}>Up to 24 months from {wcMoney(wcCartTotalNow() / 24)} — or pay in 4. Sharia-compliant.</Text>
                 <Text style={styles.xRivalLink}>Learn more</Text>
               </View>
             </View>
@@ -870,7 +933,7 @@ function Checkout({ setRoute }: { setRoute: (r: RouteKey) => void }) {
               </View>
               <View style={styles.xPriceRow}>
                 <Text style={styles.xPriceCurrency}>SAR</Text>
-                <Text style={styles.xPrice}>7,000</Text>
+                <Text style={styles.xPrice}>{formatAmount(Math.round(wcCartTotalNow()))}</Text>
                 <Text style={styles.xVat}>Incl. VAT</Text>
               </View>
               <Pressable testID="wc-add-to-cart" style={styles.xAddCartPrimary} onPress={() => setAdded(true)} accessibilityRole="button" accessibilityLabel="Add refrigerator to cart">
@@ -969,11 +1032,11 @@ function WcLeaveSheet({ onStay, onLeave }: { onStay: () => void; onLeave: () => 
       <Animated.View style={[styles.wcDetailsSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [320, 0] }) }] }]}>
         <View style={styles.sheetGrabber} />
         <Text style={styles.wcDetailsTitle}>Leave checkout?</Text>
-        <Text style={styles.wcLeaveBody}>You'll lose your progress and will need to start over if you come back. Leaving opens the Tasheel app, where you can pick this up from your account.</Text>
+        <Text style={styles.wcLeaveBody}>You'll lose your progress and will need to start over if you come back.</Text>
         <Pressable testID="wc-leave-stay" style={styles.wcGreenCta} onPress={onStay} accessibilityRole="button">
           <Text style={styles.wcGreenCtaText}>Keep going</Text>
         </Pressable>
-        <Pressable testID="wc-leave-confirm" style={styles.wcLeaveLink} onPress={() => { wcOpenTasheelApp(); onLeave(); }} accessibilityRole="button" accessibilityLabel="Leave checkout and open the Tasheel app">
+        <Pressable testID="wc-leave-confirm" style={styles.wcLeaveLink} onPress={onLeave} accessibilityRole="button" accessibilityLabel="Leave checkout">
           <Text style={styles.wcLeaveLinkText}>Leave checkout</Text>
         </Pressable>
       </Animated.View>
@@ -983,8 +1046,12 @@ function WcLeaveSheet({ onStay, onLeave }: { onStay: () => void; onLeave: () => 
 
 // Onboarding header sheet (Figma 1929:11374): white card with x-close, Tasheel wordmark, عربية.
 // The close button opens the leave-confirmation sheet before calling onClose.
-function WcOnboardHeader({ onClose }: { onClose: () => void }) {
-  const [confirmOpen, setConfirmOpen] = useState(false);
+function WcOnboardHeader({ onClose, children, onLeavePromptChange }: { onClose: () => void; children?: React.ReactNode; onLeavePromptChange?: (open: boolean) => void }) {
+  const [confirmOpen, setConfirmOpenState] = useState(false);
+  const setConfirmOpen = (open: boolean) => {
+    setConfirmOpenState(open);
+    onLeavePromptChange?.(open);
+  };
   return (
     <>
       <View style={[styles.wcObHeader, { paddingTop: SHOW_FAKE_CHROME ? 70 : 26 }]}>
@@ -995,6 +1062,7 @@ function WcOnboardHeader({ onClose }: { onClose: () => void }) {
           <Image source={figmaImageSource('wcTasheelLogo')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcObLogo} />
           <Text style={styles.wcObArabic}>العربية</Text>
         </View>
+        {children}
       </View>
       {confirmOpen ? <WcLeaveSheet onStay={() => setConfirmOpen(false)} onLeave={() => { setConfirmOpen(false); onClose(); }} /> : null}
     </>
@@ -1004,13 +1072,16 @@ function WcOnboardHeader({ onClose }: { onClose: () => void }) {
 const formatSaudiPhone = (p: string) => `+966 ${p.slice(0, 2)} ${p.slice(2, 5)} ${p.slice(5)}`;
 
 // Figma 355:45048 — Confirm Mobile Number.
-function WcMobile({ setRoute, phone, setPhone }: { setRoute: (r: RouteKey) => void; phone: string; setPhone: (p: string) => void }) {
-  const valid = phone.replace(/\D/g, '').length === 9;
+function WcMobile({ setRoute, phone, setPhone, requireConsent }: { setRoute: (r: RouteKey) => void; phone: string; setPhone: (p: string) => void; requireConsent?: boolean }) {
+  // New-user flow only (Figma 4406:63820): T&C checkbox starts unchecked and
+  // gates the confirm button.
+  const [agreed, setAgreed] = useState(false);
+  const valid = phone.replace(/\D/g, '').length === 9 && (!requireConsent || agreed);
   return (
     <AppShell>
       <View testID="wc-mobile-355-45048" style={styles.wcObScreen}>
         <ScreenFade>
-          <WcOnboardHeader onClose={() => setRoute('checkout')} />
+          <WcOnboardHeader onClose={() => setRoute('gate')} />
           <View style={styles.wcObContent}>
             <View style={styles.wcObCard}>
               <View style={{ gap: 8 }}>
@@ -1029,6 +1100,14 @@ function WcMobile({ setRoute, phone, setPhone }: { setRoute: (r: RouteKey) => vo
                     <TextInput testID="wc-phone-input" value={phone} onChangeText={v => setPhone(v.replace(/\D/g, '').slice(0, 9))} keyboardType="number-pad" style={styles.wcPhoneInput} />
                   </View>
                 </View>
+                {requireConsent ? (
+                  <Pressable testID="wc-consent-checkbox" onPress={() => setAgreed(!agreed)} accessibilityRole="checkbox" accessibilityState={{ checked: agreed }} accessibilityLabel="Agree to the Terms and Conditions and Privacy Policy" style={styles.wcConsentRow}>
+                    <View style={[styles.wcConsentBox, agreed ? styles.wcConsentBoxChecked : styles.wcConsentBoxUnchecked]}>
+                      {agreed ? <Image source={figmaImageSource('wcCheckboxCheck')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcConsentCheck} /> : null}
+                    </View>
+                    <Text style={styles.wcConsentText}>I agree to the <Text style={styles.wcConsentBold}>Terms & Conditions</Text> and <Text style={styles.wcConsentBold}>privacy Policy</Text></Text>
+                  </Pressable>
+                ) : null}
                 <Pressable testID="wc-mobile-continue" disabled={!valid} style={[styles.wcGreenCta, !valid && styles.wcGreenCtaDisabled]} onPress={() => valid && setRoute('wcOtp')} accessibilityRole="button" accessibilityState={{ disabled: !valid }}>
                   <Text style={[styles.wcGreenCtaText, !valid && styles.wcGreenCtaTextDisabled]}>Confirm mobile number</Text>
                 </Pressable>
@@ -1039,7 +1118,6 @@ function WcMobile({ setRoute, phone, setPhone }: { setRoute: (r: RouteKey) => vo
             </Pressable>
           </View>
           <View style={styles.wcObBottom}>
-            <Text style={styles.wcTosText}>By continuing, you agree to Tasheel's Terms of Service and Privacy Policy.</Text>
             <SafariCompactBar url="extrastores.com" onBack={() => setRoute('checkout')} />
           </View>
         </ScreenFade>
@@ -1051,11 +1129,21 @@ function WcMobile({ setRoute, phone, setPhone }: { setRoute: (r: RouteKey) => vo
 
 // Figma 2036:13138 (updated) — onboarding OTP as a card: boxes, timer and Confirm
 // inside one sheet; the system keyboard does the typing (no drawn keyboard).
-function WcOtp({ setRoute, phone }: { setRoute: (r: RouteKey) => void; phone: string }) {
+function WcOtp({ setRoute, phone, nextRoute = 'wcQuickCall' }: { setRoute: (r: RouteKey) => void; phone: string; nextRoute?: RouteKey }) {
   const [otp, setOtp] = useState('');
+  const [error, setError] = useState(false);
   const [secondsLeft, setSecondsLeft] = useState(90);
   const inputRef = useRef<TextInput>(null);
   const complete = otp.length === 4;
+  const WC_VALID_OTP = '1234';
+  const confirmOtp = () => {
+    if (!complete) return;
+    if (otp === WC_VALID_OTP) {
+      setRoute(nextRoute);
+    } else {
+      setError(true);
+    }
+  };
   const pop = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -1074,26 +1162,21 @@ function WcOtp({ setRoute, phone }: { setRoute: (r: RouteKey) => void; phone: st
     <AppShell>
       <View testID="wc-otp-2036-13138" style={styles.wcObScreen}>
         <ScreenFade>
-          <WcOnboardHeader onClose={() => setRoute('checkout')} />
+          <WcOnboardHeader onClose={() => setRoute('gate')} />
           <View style={styles.wcObContent}>
             <View style={styles.wcObCard}>
               <View style={{ gap: 8, width: '100%' }}>
                 <Text style={styles.wcObTitle}>Enter the 4-digit code</Text>
-                <View style={styles.wcOtpSubRow}>
-                  <Text style={styles.wcOtpSubText}>sent to you at {formatSaudiPhone(phone)}.</Text>
-                  <Pressable testID="wc-otp-edit" style={styles.wcEditPill} onPress={() => setRoute('wcMobile')} accessibilityRole="button" accessibilityLabel="Edit phone number">
-                    <Text style={styles.wcEditPillText}>Edit</Text>
-                  </Pressable>
-                </View>
+                <Text numberOfLines={1} style={styles.wcOtpSubText}>Sent to {formatSaudiPhone(phone)} to verify it's you.</Text>
               </View>
               <View style={{ gap: 16, width: '100%' }}>
-                <TextInput ref={inputRef} testID="wc-otp-hidden-input" value={otp} onChangeText={v => setOtp(v.replace(/\D/g, '').slice(0, 4))} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="sms-otp" maxLength={4} style={styles.otpHiddenInput} />
+                <TextInput ref={inputRef} testID="wc-otp-hidden-input" value={otp} onChangeText={v => { setOtp(v.replace(/\D/g, '').slice(0, 4)); setError(false); }} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="sms-otp" maxLength={4} style={styles.otpHiddenInput} />
                 <Pressable testID="wc-otp-boxes" style={styles.wcOtpBoxRowCard} onPress={() => inputRef.current?.focus()} accessibilityRole="button" accessibilityLabel="Enter the 4-digit code">
                   {[0, 1, 2, 3].map(i => {
                     const filled = i < otp.length;
                     const active = i === otp.length || (complete && i === 3);
                     return (
-                      <View key={i} style={[styles.wcOtpBox, active && styles.wcOtpBoxActive]}>
+                      <View key={i} style={[styles.wcOtpBox, active && !error && styles.wcOtpBoxActive, error && styles.wcOtpBoxError]}>
                         {filled ? (
                           <Animated.Text style={[styles.wcOtpBoxDigit, i === otp.length - 1 && { transform: [{ scale: pop }] }]}>{otp[i]}</Animated.Text>
                         ) : active ? (
@@ -1103,6 +1186,9 @@ function WcOtp({ setRoute, phone }: { setRoute: (r: RouteKey) => void; phone: st
                     );
                   })}
                 </Pressable>
+                {error ? (
+                  <Text testID="wc-otp-error" style={styles.wcOtpErrorText}>That code isn't correct. Please try again or resend it.</Text>
+                ) : null}
                 <View style={styles.wcTimerRowCard}>
                   <Svg width={16} height={16} viewBox="0 0 12.6667 14.6667" accessibilityLabel="Timer">
                     <Path d="M11.3333 8.33333C11.3333 5.57191 9.09476 3.33333 6.33333 3.33333C3.57191 3.33333 1.33333 5.57191 1.33333 8.33333C1.33333 11.0948 3.57191 13.3333 6.33333 13.3333C9.09476 13.3333 11.3333 11.0948 11.3333 8.33333ZM5.66667 5.66667C5.66667 5.29848 5.96514 5 6.33333 5C6.70152 5 7 5.29848 7 5.66667V7.95573L8.3431 8.76172C8.65874 8.95118 8.76103 9.36074 8.57161 9.67643C8.38216 9.99208 7.97259 10.0944 7.65695 9.90495L5.99028 8.90495C5.78946 8.78443 5.66667 8.56741 5.66667 8.33333V5.66667ZM10.4587 1.47135C10.1525 1.26727 9.73864 1.35 9.53456 1.65614C9.33048 1.96229 9.41321 2.37617 9.71935 2.58025L11.0527 3.46891C11.3588 3.673 11.7727 3.59027 11.9768 3.28412C12.1809 2.97798 12.0981 2.5641 11.792 2.36002L10.4587 1.47135ZM3.13243 1.65614C2.92835 1.35 2.51447 1.26727 2.20833 1.47135L0.874992 2.36002C0.568848 2.5641 0.486119 2.97798 0.690201 3.28412C0.894284 3.59027 1.30816 3.673 1.61431 3.46891L2.94764 2.58025C3.25378 2.37617 3.33651 1.96229 3.13243 1.65614Z" fill="#4B5563" />
@@ -1117,8 +1203,8 @@ function WcOtp({ setRoute, phone }: { setRoute: (r: RouteKey) => void; phone: st
                     </Pressable>
                   </View>
                 ) : null}
-                <Pressable testID="wc-otp-confirm" disabled={!complete} style={[styles.wcGreenCta, { width: '100%' }, !complete && styles.wcGreenCtaDisabled]} onPress={() => complete && setRoute('wcQuickCall')} accessibilityRole="button" accessibilityState={{ disabled: !complete }}>
-                  <Text style={[styles.wcGreenCtaText, !complete && styles.wcGreenCtaTextDisabled]}>Confirm OTP</Text>
+                <Pressable testID="wc-otp-confirm" disabled={!complete || error} style={[styles.wcGreenCta, { width: '100%' }, (!complete || error) && styles.wcGreenCtaDisabled]} onPress={confirmOtp} accessibilityRole="button" accessibilityState={{ disabled: !complete || error }}>
+                  <Text style={[styles.wcGreenCtaText, (!complete || error) && styles.wcGreenCtaTextDisabled]}>Confirm OTP</Text>
                 </Pressable>
               </View>
             </View>
@@ -1127,7 +1213,6 @@ function WcOtp({ setRoute, phone }: { setRoute: (r: RouteKey) => void; phone: st
             </Pressable>
           </View>
           <View style={styles.wcObBottom}>
-            <Text style={styles.wcTosText}>By continuing, you agree to Tasheel's Terms of Service and Privacy Policy.</Text>
             <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcMobile')} />
           </View>
         </ScreenFade>
@@ -1138,11 +1223,31 @@ function WcOtp({ setRoute, phone }: { setRoute: (r: RouteKey) => void; phone: st
 }
 
 // Figma 1628:32393 — Identity Verification (Yaqeen). DOB uses the native iOS date picker.
+const HIJRI_MONTHS = ['Muharram', 'Safar', "Rabi' I", "Rabi' II", 'Jumada I', 'Jumada II', 'Rajab', "Sha'ban", 'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'];
+
 function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   const [idNumber, setIdNumber] = useState('');
   const [dob, setDob] = useState(''); // yyyy-mm-dd from the native date input
+  const [hijri, setHijri] = useState({ day: '', month: '', year: '' });
   const dobRef = useRef<HTMLInputElement | null>(null);
-  const valid = idNumber.replace(/\D/g, '').length === 10 && dob.length === 10;
+  // Saudi national IDs start with 1 (Hijri birth records); iqama numbers start
+  // with 2 (Gregorian). The calendar follows the ID prefix automatically.
+  const useHijri = idNumber.startsWith('1');
+  const dobComplete = useHijri ? Boolean(hijri.day && hijri.month && hijri.year) : dob.length === 10;
+  const valid = idNumber.replace(/\D/g, '').length === 10 && dobComplete;
+  const hijriSelectStyle = { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: '#030712', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none' as const, minHeight: 22, letterSpacing: '-0.24px' };
+  const hijriSelect = (key: 'day' | 'month' | 'year', placeholder: string, options: string[], flexGrow: number) =>
+    createElement(
+      'select',
+      {
+        'data-testid': `wc-dob-hijri-${key}`,
+        value: hijri[key],
+        onChange: (e: { target: { value: string } }) => setHijri(prev => ({ ...prev, [key]: e.target.value })),
+        style: { ...hijriSelectStyle, flexGrow, color: hijri[key] ? '#030712' : '#4b5563' },
+      },
+      createElement('option', { value: '', disabled: true, hidden: true }, placeholder),
+      ...options.map(option => createElement('option', { key: option, value: option }, option)),
+    );
   const openNativePicker = () => {
     const el = dobRef.current;
     if (!el) return;
@@ -1156,7 +1261,7 @@ function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
     <AppShell>
       <View testID="wc-identity-1628-32393" style={styles.wcObScreen}>
         <ScreenFade>
-          <WcOnboardHeader onClose={() => setRoute('checkout')} />
+          <WcOnboardHeader onClose={() => setRoute('gate')} />
           <View style={styles.wcObContent}>
             <View style={styles.wcObCard}>
               <View style={{ gap: 8, width: '100%' }}>
@@ -1170,27 +1275,32 @@ function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
                 </View>
               </View>
               <View style={{ gap: 12, width: '100%' }}>
-                <Text style={styles.wcFieldLabel}>Date of Birth</Text>
-                <View style={styles.wcInputRow}>
-                  {/* Native date input so iOS presents its own calendar/wheel picker. */}
-                  {createElement('input', {
-                    'data-testid': 'wc-dob-input',
-                    type: 'date',
-                    ref: dobRef,
-                    value: dob,
-                    min: '1940-01-01',
-                    max: '2008-12-31',
-                    onChange: (e: { target: { value: string } }) => setDob(e.target.value),
-                    style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
-                  })}
-                  <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
+                <Text style={styles.wcFieldLabel}>Date of Birth{useHijri ? ' (Hijri)' : ''}</Text>
+                {useHijri ? (
+                  <View style={[styles.wcInputRow, { gap: 8 }]}>
+                    {hijriSelect('day', 'Day', Array.from({ length: 30 }, (_, i) => String(i + 1)), 0.7)}
+                    {hijriSelect('month', 'Month', HIJRI_MONTHS, 1.6)}
+                    {hijriSelect('year', 'Year', Array.from({ length: 70 }, (_, i) => String(1429 - i)), 0.9)}
                     <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
-                  </Pressable>
-                </View>
-              </View>
-              <View style={styles.wcShieldRow}>
-                <Image source={figmaImageSource('wcShieldTick')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 20, height: 20 }} />
-                <Text style={styles.wcShieldText}>Your data is verified through Yaqeen, Saudi Arabia's official identity platform.</Text>
+                  </View>
+                ) : (
+                  <View style={styles.wcInputRow}>
+                    {/* Native date input so iOS presents its own calendar/wheel picker. */}
+                    {createElement('input', {
+                      'data-testid': 'wc-dob-input',
+                      type: 'date',
+                      ref: dobRef,
+                      value: dob,
+                      min: '1940-01-01',
+                      max: '2008-12-31',
+                      onChange: (e: { target: { value: string } }) => setDob(e.target.value),
+                      style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
+                    })}
+                    <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
+                      <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
+                    </Pressable>
+                  </View>
+                )}
               </View>
               <Pressable testID="wc-identity-confirm" disabled={!valid} style={[styles.wcGreenCta, { width: '100%' }, !valid && styles.wcGreenCtaDisabled]} onPress={() => valid && setRoute('wcNafath')} accessibilityRole="button" accessibilityState={{ disabled: !valid }}>
                 <Text style={[styles.wcGreenCtaText, !valid && styles.wcGreenCtaTextDisabled]}>Confirm</Text>
@@ -1227,7 +1337,7 @@ function WcNafath({ setRoute }: { setRoute: (r: RouteKey) => void }) {
     <AppShell>
       <View testID="wc-nafath-1929-61813" style={styles.wcObScreen}>
         <ScreenFade>
-          <WcOnboardHeader onClose={() => setRoute('checkout')} />
+          <WcOnboardHeader onClose={() => setRoute('gate')} />
           <View style={styles.wcNafathCenter}>
             <View style={styles.wcNafathCircle}>
               <Image source={figmaImageSource('wcNafathMark')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcNafathMark} />
@@ -1237,7 +1347,7 @@ function WcNafath({ setRoute }: { setRoute: (r: RouteKey) => void }) {
             <View style={styles.wcNafathCard}>
               <Text style={styles.wcNafathHowTitle}>How to use Nafath:</Text>
               {[
-                ['1', 'Click here to download or open the Nafath app', true],
+                ['1', 'Download or open the Nafath app', false],
                 ['2', 'Register or login to your account', false],
                 ['3', 'Approve the access', false],
                 ['4', 'Select the number displayed above', false],
@@ -1276,6 +1386,17 @@ const WC_AVAILABLE_LIMIT = 5000.00;
 const WC_FINANCED_PRINCIPAL = Math.min(WC_DISCOUNTED_TOTAL, WC_AVAILABLE_LIMIT);
 const WC_DOWN_PAYMENT = Math.max(0, Math.round((WC_DISCOUNTED_TOTAL - WC_FINANCED_PRINCIPAL) * 100) / 100);
 const WC_TENURES = [2, 3, 4, 6, 9, 12, 24, 36] as const;
+type WcProduct = 'bnpl' | 'plus';
+// Demo-scoped offer config. BNPL = short interest-free plans (0 fees, 0 interest,
+// up to 4 months for returning customers / 6 for new ones). BNPL Plus = extended
+// financing on the full Murabaha fee schedule. Kept at module level so the fee
+// helpers below stay drop-in; App re-syncs it from state on every render.
+let wcActiveProduct: WcProduct = 'bnpl';
+let wcActiveTenures: readonly number[] = [2, 3, 4];
+const configureWcOffer = (product: WcProduct, flow: WcFlow) => {
+  wcActiveProduct = product;
+  wcActiveTenures = product === 'bnpl' ? (flow === 'new' ? [2, 3, 4, 6] : [2, 3, 4]) : [4, 6, 9, 12, 24, 36];
+};
 // 2 and 3 months are free; 4 months and longer carry a 1% Murabaha fee on the
 // financed principal. Every tenure has a rate, so no plan is ever unselectable.
 const WC_FEE_RATES: Record<number, number> = {
@@ -1289,10 +1410,25 @@ const WC_FEE_RATES: Record<number, number> = {
   36: 0.01,
 };
 const wcPlanFeeRate = (months: number) => WC_FEE_RATES[months] ?? 0;
-const wcPlanFee = (months: number) => Math.round(WC_FINANCED_PRINCIPAL * wcPlanFeeRate(months) * 100) / 100;
-const wcPlanTotal = (months: number) => Math.round((WC_DISCOUNTED_TOTAL + wcPlanFee(months)) * 100) / 100;
-const wcPlanMonthly = (months: number) => Math.round(((WC_FINANCED_PRINCIPAL + wcPlanFee(months)) / months) * 100) / 100;
-const wcPlanToday = (months: number) => Math.round((WC_DOWN_PAYMENT + wcPlanMonthly(months)) * 100) / 100;
+// BNPL carries no discount and finances the full cart with no down payment.
+// BNPL Plus offers a per-tenure discount — longer plans save more — and keeps
+// the available-limit / down-payment fixture on the big-ticket cart.
+const wcHasDiscount = () => wcActiveProduct !== 'bnpl';
+// BNPL demos a lower-value ticket; BNPL Plus keeps the big-ticket fixture.
+const WC_BNPL_CART_TOTAL = 2000.00;
+const WC_PLUS_DISCOUNT_RATES: Record<number, number> = { 4: 0.02, 6: 0.02, 9: 0.02, 12: 0.05, 24: 0.1, 36: 0.1 };
+const WC_PLUS_MAX_DISCOUNT_RATE = 0.1;
+const wcCartTotalNow = () => (wcActiveProduct === 'bnpl' ? WC_BNPL_CART_TOTAL : WC_CART_TOTAL);
+const wcDiscountRateFor = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : WC_PLUS_DISCOUNT_RATES[months] ?? 0);
+const wcDiscountPctFor = (months: number) => Math.round(wcDiscountRateFor(months) * 100);
+const wcDiscountAmountFor = (months: number) => Math.round(wcCartTotalNow() * wcDiscountRateFor(months) * 100) / 100;
+const wcOrderTotalFor = (months: number) => Math.round((wcCartTotalNow() - wcDiscountAmountFor(months)) * 100) / 100;
+const wcPrincipalFor = (months: number) => (wcActiveProduct === 'bnpl' ? WC_BNPL_CART_TOTAL : Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT));
+const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(months) - wcPrincipalFor(months)) * 100) / 100);
+const wcPlanFee = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : Math.round(wcPrincipalFor(months) * wcPlanFeeRate(months) * 100) / 100);
+const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months)) * 100) / 100;
+const wcPlanMonthly = (months: number) => Math.round(((wcPrincipalFor(months) + wcPlanFee(months)) / months) * 100) / 100;
+const wcPlanToday = (months: number) => Math.round((wcDownFor(months) + wcPlanMonthly(months)) * 100) / 100;
 // Deep link into the native Tasheel SwiftUI app. Nothing happens if the app is
 // not installed, so the current web screen remains available as a fallback.
 const wcOpenTasheelApp = (destination = 'tasheel://bnpl') => {
@@ -1302,7 +1438,7 @@ const wcOpenTasheelApp = (destination = 'tasheel://bnpl') => {
 const wcPurchaseDeepLink = (months: number) => {
   const params = new URLSearchParams({
     orderRef: WC_ORDER_REFERENCE,
-    amount: WC_DISCOUNTED_TOTAL.toFixed(2),
+    amount: wcOrderTotalFor(months).toFixed(2),
     months: String(months),
     merchant: 'extrastores',
   });
@@ -1345,16 +1481,21 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
     const timer = setTimeout(() => setRoute('wcTenure'), 2000);
     return () => clearTimeout(timer);
   }, [phase, setRoute]);
+  // Figma 3299:37747 — quick call with the standard onboarding header, full-bleed
+  // incoming-call art, and a left-aligned verification panel pinned to the bottom.
   return (
-    <AppShell>
-      <View testID="wc-quickcall-1628-55884" style={styles.wcObScreen}>
+    <AppShell scroll={false}>
+      <View testID="wc-quickcall-3299-37747" style={styles.wcObScreen}>
         <ScreenFade>
-          <View style={styles.wcQcArtWrap}>
-            <Image source={figmaImageSource('wcQuickCallArt')} resizeMode="contain" accessibilityIgnoresInvertColors accessibilityLabel="Tasheel incoming call" style={styles.wcQcArt} />
+          <WcOnboardHeader onClose={() => setRoute('gate')} />
+          <View style={styles.wcQcHero}>
+            <Image source={figmaImageSource('wcQuickCallHero')} resizeMode="cover" accessibilityIgnoresInvertColors accessibilityLabel="Tasheel incoming call" style={styles.wcQcHeroArt} />
           </View>
           <View style={styles.wcQcPanel}>
-            <Text style={styles.wcQcTitle}>Ready for a quick call?</Text>
-            <Text style={styles.wcQcSub}>We'll call your registered number. Enter the code you hear to continue.</Text>
+            <View style={{ gap: 8, width: '100%' }}>
+              <Text style={styles.wcQcTitle}>Ready for a quick call?</Text>
+              <Text style={styles.wcQcSub}>We'll call your registered number. Enter the code you hear to continue.</Text>
+            </View>
             <Animated.View style={{ transform: [{ scale: pulse }] }}>
               <Pressable testID="wc-quickcall-cta" disabled={phase !== 'idle'} style={[styles.wcGreenCta, styles.wcQcCta, phase === 'calling' && { opacity: 0.8 }]} onPress={() => setPhase('calling')} accessibilityRole="button" accessibilityLabel={phase === 'verified' ? 'Verification successful' : 'Call me now'}>
               <Animated.View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, opacity: swap }}>
@@ -1363,9 +1504,9 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
               </Animated.View>
               </Pressable>
             </Animated.View>
-          </View>
-          <View style={styles.wcObBottom}>
-            <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcOtp')} />
+            <View style={styles.wcObBottom}>
+              <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcOtp')} />
+            </View>
           </View>
         </ScreenFade>
         <View style={styles.wcStatusOverlay} pointerEvents="none"><StatusStrip pointerEvents="none" /></View>
@@ -1376,96 +1517,220 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 
 // Figma 1878:13093 / 13247 / 1865:3575 — source layout extended to the
 // meeting-approved 2/3/4/6/9/12/24/36-month product set.
+// Figma 4406:63560 — Choose plan as a list. Every tenure is visible at once;
+// tapping a row selects it and raises the benefits sheet (Confirm / View details).
+// Amounts come from the live pricing engine, not the Figma placeholder copy.
 function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => void; months: number; setMonths: (m: number) => void }) {
   const [sheet, setSheet] = useState<null | 'details' | 'schedule' | 'cart' | 'fee'>(null);
-  const swap = useRef(new Animated.Value(1)).current;
-  const bump = (next: number) => {
-    if (!WC_TENURES.includes(next as (typeof WC_TENURES)[number]) || next === months) return;
-    swap.setValue(0.3);
-    Animated.spring(swap, { toValue: 1, friction: 7, tension: 180, useNativeDriver: true }).start();
-    setMonths(next);
+  const [picked, setPicked] = useState(false);
+  const [leavePromptOpen, setLeavePromptOpen] = useState(false);
+  const rise = useRef(new Animated.Value(0)).current;
+  // Scroll-driven header condensation (Figma 4406:63858): as the cart pill scrolls
+  // away, a compact "Choose how to split" summary grows into the header block.
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const condenseStyle = {
+    height: scrollY.interpolate({ inputRange: [24, 76], outputRange: [0, 40], extrapolate: 'clamp' as const }),
+    opacity: scrollY.interpolate({ inputRange: [40, 84], outputRange: [0, 1], extrapolate: 'clamp' as const }),
   };
-  const previous = wcAdjacentTenure(months, -1);
-  const next = wcAdjacentTenure(months, 1);
-  const fee = wcPlanFee(months);
+  const closeSheet = () => {
+    Animated.timing(rise, { toValue: 0, duration: 220, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => setPicked(false));
+  };
+  // Bring the picked plan into view with two plans of context above it. Row offsets
+  // are captured via onLayout so the math survives copy or layout changes.
+  const scrollRef = useRef<ScrollView | null>(null);
+  const listTopRef = useRef(0);
+  const rowYRef = useRef<Record<number, number>>({});
+  const scrollToPlan = (m: number) => {
+    const idx = wcActiveTenures.indexOf(m);
+    if (idx < 0) return;
+    // The first three rows already have their two rows of context (or the list top)
+    // visible from position 0 — keep the cart pill and title on screen for them.
+    const anchor = wcActiveTenures[idx - 2];
+    const y = idx <= 2 ? 0 : listTopRef.current + (rowYRef.current[anchor] ?? 0) - 8;
+    // Defer one frame so the sheet's extra bottom padding is laid out before clamping.
+    requestAnimationFrame(() => scrollRef.current?.scrollTo({ y: Math.max(0, y), animated: true }));
+  };
+  const pick = (m: number) => {
+    if (picked && m === months) {
+      closeSheet();
+      return;
+    }
+    setMonths(m);
+    scrollToPlan(m);
+    if (!picked) {
+      setPicked(true);
+      rise.setValue(0);
+      Animated.timing(rise, { toValue: 1, duration: 280, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
+    }
+  };
   return (
-    <AppShell>
-      <View testID="wc-tenure-1878-13247" style={styles.wcObScreen}>
+    <AppShell scroll={false}>
+      <View testID="wc-tenure-4406-63560" style={styles.wcObScreen}>
         <ScreenFade>
-          <WcOnboardHeader onClose={() => setRoute('checkout')} />
-          <View style={styles.wcTenureContent}>
+          <WcOnboardHeader onClose={() => setRoute('gate')} onLeavePromptChange={setLeavePromptOpen}>
+            <Animated.View style={[styles.wcCondenseRow, condenseStyle]}>
+              <View style={styles.wcCondenseInner}>
+                <Text style={styles.wcCondenseLabel}>Choose how to split</Text>
+                <View style={styles.wcCartRight}>
+                  {picked && wcHasDiscount() ? (
+                    <>
+                      <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>{wcDiscountPctFor(months)}% off</Text></View>
+                      <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(WC_CART_TOTAL))}</Text>
+                      <Money amount={wcMoney(wcOrderTotalFor(months))} size={17} weight="600" />
+                    </>
+                  ) : (
+                    <Money amount={wcMoney(WC_CART_TOTAL)} size={17} weight="600" />
+                  )}
+                </View>
+              </View>
+            </Animated.View>
+          </WcOnboardHeader>
+          <Animated.ScrollView
+            ref={scrollRef as React.Ref<ScrollView>}
+            style={{ flex: 1 }}
+            contentContainerStyle={[styles.wcTenureContent, { paddingBottom: picked ? 250 : 40 }]}
+            showsVerticalScrollIndicator={false}
+            scrollEventThrottle={16}
+            onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
+          >
             <Pressable testID="wc-cart-pill" style={styles.wcCartPill} onPress={() => setSheet('cart')} accessibilityRole="button" accessibilityLabel="View cart details">
               <View style={styles.wcCartLeft}>
                 <Image source={figmaImageSource('wcCartIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 16, height: 16 }} />
                 <Text style={styles.wcCartItems}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
               </View>
               <View style={styles.wcCartRight}>
-                <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>10% off</Text></View>
-                <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(WC_CART_TOTAL))}</Text>
-                <Money amount={wcMoney(WC_DISCOUNTED_TOTAL)} size={16} weight="700" />
+                {picked && wcHasDiscount() ? (
+                  <>
+                    <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>{wcDiscountPctFor(months)}% off</Text></View>
+                    <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(WC_CART_TOTAL))}</Text>
+                    <Money amount={wcMoney(wcOrderTotalFor(months))} size={16} weight="700" />
+                  </>
+                ) : (
+                  <Money amount={wcMoney(wcCartTotalNow())} size={16} weight="700" />
+                )}
                 <Image source={figmaImageSource('wcArrowRight')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 13, height: 13 }} />
               </View>
             </Pressable>
-            <View style={styles.wcPlanCard}>
-              <View style={{ gap: 6, width: '100%' }}>
-                <Text style={styles.wcPlanTitle}>Choose your plan</Text>
-                <Text style={styles.wcPlanSub}>You can split your purchase up to <Text style={{ fontWeight: '600' }}>36 months</Text></Text>
-              </View>
-              <View style={styles.wcStepperTrack}>
-                <Pressable testID="wc-plan-minus" disabled={previous === null} onPress={() => previous !== null && bump(previous)} style={[styles.wcStepperMinus, previous === null && { opacity: 0.45 }]} accessibilityRole="button" accessibilityLabel="Previous plan">
-                  <Image source={figmaImageSource('wcMinus')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 23, height: 3 }} />
-                </Pressable>
-                <View style={styles.wcStepperCenter}>
-                  <Pressable onPress={() => previous !== null && bump(previous)} disabled={previous === null} accessibilityRole="button" accessibilityLabel={previous === null ? 'No previous plan' : `${previous} months`}>
-                    <Text style={styles.wcStepperSide}>{previous ?? ' '}</Text>
+            <Text style={styles.wcPlanListTitle}>Choose plan</Text>
+            <View style={{ gap: 10 }} accessibilityRole="radiogroup" onLayout={(e) => { listTopRef.current = e.nativeEvent.layout.y; }}>
+              {wcActiveTenures.map((m) => {
+                const planFee = wcPlanFee(m);
+                const selected = picked && m === months;
+                return (
+                  <Pressable
+                    key={m}
+                    testID={`wc-plan-${m}`}
+                    onLayout={(e) => { rowYRef.current[m] = e.nativeEvent.layout.y; }}
+                    onPress={() => pick(m)}
+                    accessibilityRole="radio"
+                    accessibilityState={{ selected }}
+                    accessibilityLabel={`${m} payments, ${wcMoney(wcPlanMonthly(m))} per month`}
+                    style={[styles.wcPlanRow, selected && styles.wcPlanRowSelected]}
+                  >
+                    <View style={{ gap: 6, flexShrink: 1 }}>
+                      <Text style={styles.wcPlanRowLabel}>{m} Payments</Text>
+                      {planFee === 0 ? (
+                        <Text style={styles.wcPlanRowNote}>No interest. No fees</Text>
+                      ) : (
+                        <View style={styles.wcPlanRowFeeLine}>
+                          <Riyal size={11} color={muted} />
+                          <Text style={styles.wcPlanRowNote}>{wcMoney(planFee)} one-time fee</Text>
+                        </View>
+                      )}
+                    </View>
+                    <View style={{ alignItems: 'flex-end', gap: 8 }}>
+                      {wcDiscountAmountFor(m) > 0 ? (
+                        <View style={styles.wcPlanDiscountChip}>
+                          <Image source={figmaImageSource('wcSaleTag')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 12, height: 12 }} />
+                          <Text style={styles.wcPlanDiscountText}>{wcDiscountPctFor(m)}% Off · Save</Text>
+                          <View style={styles.wcPlanDiscountAmt}>
+                            <Riyal size={10} color={green} />
+                            <Text style={styles.wcPlanDiscountSave}>{formatAmount(Math.round(wcDiscountAmountFor(m)))}</Text>
+                          </View>
+                        </View>
+                      ) : null}
+                      <View style={styles.wcPlanPriceRow}>
+                        <Riyal size={15} />
+                        <Text style={styles.wcPlanPrice}>{wcMoney(wcPlanMonthly(m))}</Text>
+                        <Text style={styles.wcPlanPriceUnit}>/mo</Text>
+                      </View>
+                    </View>
                   </Pressable>
-                  <View style={{ alignItems: 'center', gap: 2 }}>
-                    <Animated.Text testID="wc-plan-months" style={[styles.wcStepperMain, { transform: [{ scale: swap }] }]}>{months}</Animated.Text>
-                    <Text style={styles.wcStepperMonthsLabel}>Months</Text>
-                  </View>
-                  <Pressable onPress={() => next !== null && bump(next)} disabled={next === null} accessibilityRole="button" accessibilityLabel={next === null ? 'No next plan' : `${next} months`}>
-                    <Text style={styles.wcStepperSide}>{next ?? ' '}</Text>
-                  </Pressable>
-                </View>
-                <Pressable testID="wc-plan-plus" disabled={next === null} onPress={() => next !== null && bump(next)} style={[styles.wcStepperPlus, next === null && { opacity: 0.45 }]} accessibilityRole="button" accessibilityLabel="Next plan">
-                  <Image source={figmaImageSource('wcPlus')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 22, height: 22 }} />
-                </Pressable>
-              </View>
-              <FadeSwap swapKey={`plan-${months}`}>
-                <View style={styles.wcPlanHero}>
-                  <View style={styles.wcPlanHeroRow}>
-                    <Riyal size={20} />
-                    <Text style={styles.wcPlanHeroAmount}>{wcMoney(wcPlanToday(months))}</Text>
-                    <Text style={styles.wcPlanHeroToday}> today</Text>
-                  </View>
-                  <Text style={styles.wcPlanThen}>Then <Riyal size={12} color={muted} /> {wcMoney(wcPlanMonthly(months))} / Month</Text>
-                  <View style={styles.wcPlanFeesRow}>
-                    <Text style={styles.wcPlanFees}>{fee === 0 ? 'No fees' : <>Fees <Riyal size={11} color={muted} /> {wcMoney(fee)}</>}</Text>
-                    {fee > 0 ? (
-                      <Pressable testID="wc-four-month-fee-help" onPress={() => setSheet('fee')} hitSlop={10} accessibilityRole="button" accessibilityLabel={`Explain the ${months} month fee`}>
-                        <Image source={figmaImageSource('wcInfoCircle')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
-                      </Pressable>
-                    ) : null}
-                  </View>
-                </View>
-              </FadeSwap>
-              <View style={{ gap: 12, width: '100%' }}>
-                <Pressable testID="wc-plan-continue" style={styles.wcGreenCta} onPress={() => setRoute('wcPayment')} accessibilityRole="button">
-                  <Text style={styles.wcGreenCtaText}>Continue with plan</Text>
-                </Pressable>
-                <Pressable testID="wc-plan-details" style={styles.wcGreyCta} onPress={() => setSheet('details')} accessibilityRole="button">
-                  <Text style={styles.wcGreyCtaText}>View plan details</Text>
-                </Pressable>
-              </View>
+                );
+              })}
             </View>
-          </View>
+          </Animated.ScrollView>
           <View style={styles.wcObBottom}>
             <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcQuickCall')} />
           </View>
         </ScreenFade>
+        {/* Soft fade over the list's bottom edge (Figma frames fade rows out instead of hard-clipping them). */}
+        {!picked ? (
+          <View pointerEvents="none" style={styles.wcListFade}>
+            <Svg width="100%" height="100%">
+              <Defs>
+                <SvgLinearGradient id="wcPlanListFade" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0" stopColor={canvas} stopOpacity="0" />
+                  <Stop offset="1" stopColor={canvas} stopOpacity="1" />
+                </SvgLinearGradient>
+              </Defs>
+              <Rect width="100%" height="100%" fill="url(#wcPlanListFade)" />
+            </Svg>
+          </View>
+        ) : null}
+        {picked && !leavePromptOpen ? (
+          <ViewportLayer>
+            <View style={styles.wcBenefitLayer} pointerEvents="box-none">
+              <Animated.View style={[styles.wcBenefitSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
+                <View style={styles.sheetGrabber} />
+                <View style={styles.wcBenefitTitleRow}>
+                  <Text style={styles.wcBenefitTitle}>Your plan benefits</Text>
+                  <View style={styles.wcBenefitPlanChip}><Text style={styles.wcBenefitPlanChipText}>{months} Payments</Text></View>
+                </View>
+                <View style={styles.wcBenefitBox}>
+                  {wcHasDiscount() ? (
+                    <>
+                      <View style={styles.wcBenefitHeadRow}>
+                        <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                        <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied</Text>
+                      </View>
+                      <View style={styles.wcBenefitBodyRow}>
+                        <Text style={styles.wcBenefitBody}>You’re saving</Text>
+                        <Riyal size={11} color={muted} />
+                        <Text style={styles.wcBenefitBody}>{formatAmount(Math.round(wcDiscountAmountFor(months)))}</Text>
+                        <Text style={styles.wcBenefitBody}>off your cart total</Text>
+                      </View>
+                    </>
+                  ) : (
+                    <>
+                      <View style={styles.wcBenefitHeadRow}>
+                        <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                        <Text style={styles.wcBenefitHead}>0% interest. 0% fees.</Text>
+                      </View>
+                      <View style={styles.wcBenefitBodyRow}>
+                        <Text style={styles.wcBenefitBody}>Pay</Text>
+                        <Riyal size={11} color={muted} />
+                        <Text style={styles.wcBenefitBody}>{wcMoney(wcPlanMonthly(months))}</Text>
+                        <Text style={styles.wcBenefitBody}>per month for {months} months</Text>
+                      </View>
+                    </>
+                  )}
+                </View>
+                <View style={styles.wcBenefitButtons}>
+                  <Pressable testID="wc-plan-details" style={[styles.wcGreyCta, { flex: 1, width: undefined }]} onPress={() => setSheet('details')} accessibilityRole="button">
+                    <Text style={styles.wcGreyCtaText}>View details</Text>
+                  </Pressable>
+                  <Pressable testID="wc-plan-continue" style={[styles.wcGreenCta, { flex: 1 }]} onPress={() => setRoute('wcPayment')} accessibilityRole="button">
+                    <Text style={styles.wcGreenCtaText}>Confirm</Text>
+                  </Pressable>
+                </View>
+              </Animated.View>
+            </View>
+          </ViewportLayer>
+        ) : null}
         {sheet === 'details' ? <WcPlanDetailsSheet months={months} onClose={() => setSheet(null)} onViewSchedule={() => setSheet('schedule')} onContinue={() => setRoute('wcPayment')} /> : null}
-        {sheet === 'schedule' ? <WcFullScheduleSheet months={months} onClose={() => setSheet(null)} /> : null}
-        {sheet === 'cart' ? <WcCartSheet onClose={() => setSheet(null)} /> : null}
+        {sheet === 'schedule' ? <WcFullScheduleSheet months={months} onClose={() => setSheet(null)} onBack={() => setSheet('details')} onConfirm={() => setRoute('wcPayment')} /> : null}
+        {sheet === 'cart' ? <WcCartSheet onClose={() => setSheet(null)} months={months} picked={picked} /> : null}
         {sheet === 'fee' ? <WcFourMonthFeeSheet onClose={() => setSheet(null)} /> : null}
         <View style={styles.wcStatusOverlay} pointerEvents="none"><StatusStrip pointerEvents="none" /></View>
       </View>
@@ -1496,11 +1761,10 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
           </View>
           <Progress value={1 / months} segments={months} />
           <View style={styles.reviewLine}>
-            <Text style={styles.wcDetailsDim}>Down payment today</Text>
+            <Text style={styles.wcDetailsDim}>Starts today</Text>
             <Text style={styles.wcDetailsDim}>Ends 1 {endMonth}</Text>
           </View>
-        </View>
-        <View style={styles.wcDetailsCard}>
+          <View style={styles.reviewDivider} />
           <View style={styles.reviewLine}>
             <Text style={styles.wcDetailsLabel}>Due today</Text>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -1508,27 +1772,23 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
               <Money amount={wcMoney(wcPlanToday(months))} size={17} color={greenMid} />
             </View>
           </View>
-          <View style={styles.reviewDivider} />
-          <View style={styles.reviewLine}>
-            <View>
-              <Text style={styles.wcDetailsLabel}>Then monthly</Text>
-              <Text style={styles.wcDetailsDim}>{months - 1} {wcPaymentsWord(months - 1)} · {months === 2 ? `1 ${startMonth}` : `1 ${startMonth} – 1 ${endMonth}`}</Text>
-            </View>
-            <Money amount={wcMoney(wcPlanMonthly(months))} size={17} />
-          </View>
           <Pressable testID="wc-view-full-schedule" style={styles.wcScheduleLinkRow} onPress={onViewSchedule} accessibilityRole="button" accessibilityLabel="View full schedule">
             <Text style={styles.wcScheduleLinkText}>View full schedule</Text>
             <Text style={styles.wcScheduleLinkChevron}>›</Text>
           </Pressable>
         </View>
         <View style={styles.wcDetailsCard}>
-          <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Order total</Text><Money amount={wcMoney(WC_CART_TOTAL)} size={17} /></View>
-          <View style={styles.reviewDivider} />
-          <View style={styles.reviewLine}><Text style={[styles.wcDetailsLabel, { color: greenMid }]}>Tasheel discount (10%)</Text><Text style={styles.wcFeeFree}>− <Riyal size={10} color={greenMid} /> {wcMoney(WC_DISCOUNT_AMOUNT)}</Text></View>
-          <View style={styles.reviewDivider} />
-          <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Available BNPL limit</Text><Money amount={wcMoney(WC_AVAILABLE_LIMIT)} size={17} /></View>
-          <View style={styles.reviewDivider} />
-          <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Down payment</Text><Money amount={wcMoney(WC_DOWN_PAYMENT)} size={17} /></View>
+          <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Order total</Text><Money amount={wcMoney(wcCartTotalNow())} size={17} /></View>
+          {wcHasDiscount() ? (
+            <>
+              <View style={styles.reviewDivider} />
+              <View style={styles.reviewLine}><Text style={[styles.wcDetailsLabel, { color: greenMid }]}>Tasheel discount ({wcDiscountPctFor(months)}%)</Text><Text style={styles.wcFeeFree}>− <Riyal size={10} color={greenMid} /> {wcMoney(wcDiscountAmountFor(months))}</Text></View>
+              <View style={styles.reviewDivider} />
+              <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Available BNPL limit</Text><Money amount={wcMoney(WC_AVAILABLE_LIMIT)} size={17} /></View>
+              <View style={styles.reviewDivider} />
+              <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Down payment</Text><Money amount={wcMoney(wcDownFor(months))} size={17} /></View>
+            </>
+          ) : null}
           <View style={styles.reviewDivider} />
           <View style={[styles.reviewLine, { position: 'relative' }]}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 5 }}>
@@ -1569,7 +1829,7 @@ function WcFourMonthFeeSheet({ onClose }: { onClose: () => void }) {
         <View style={styles.wcDetailsCard}>
           <Text style={styles.wcWhyText}>This plan has a 1% Murabaha fee and no interest.</Text>
           <View style={styles.reviewDivider} />
-          <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Financed amount</Text><Money amount={wcMoney(WC_FINANCED_PRINCIPAL)} size={16} /></View>
+          <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Financed amount</Text><Money amount={wcMoney(wcPrincipalFor(4))} size={16} /></View>
           <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Total fee</Text><Money amount={wcMoney(wcPlanFee(4) ?? 0)} size={16} /></View>
           <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Fee treatment</Text><Text style={styles.wcDetailsStrong}>Split across 4 payments</Text></View>
         </View>
@@ -1582,13 +1842,13 @@ function WcFourMonthFeeSheet({ onClose }: { onClose: () => void }) {
 }
 
 // Figma 2003:12885 — Full schedule timeline, derived live from the selected tenure.
-function WcFullScheduleSheet({ months, onClose }: { months: number; onClose: () => void }) {
+function WcFullScheduleSheet({ months, onClose, onBack, onConfirm }: { months: number; onClose: () => void; onBack?: () => void; onConfirm?: () => void }) {
   const rise = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(rise, { toValue: 1, duration: 280, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
   }, [rise]);
   const rows = Array.from({ length: months }, (_, i) => {
-    if (i === 0) return { label: 'Today', sub: 'Down payment', amount: wcPlanToday(months), badge: 'Due today' as const };
+    if (i === 0) return { label: 'Today', sub: wcDownFor(months) > 0 ? 'Down payment' : `Payment 1 of ${months}`, amount: wcPlanToday(months), badge: 'Due today' as const };
     return { label: `1 ${MONTH_NAMES[(6 + i - 1) % 12].slice(0, 3)}`, sub: `Payment ${i + 1} of ${months}`, amount: wcPlanMonthly(months), badge: i === months - 1 ? ('Final' as const) : null };
   });
   return (
@@ -1596,7 +1856,22 @@ function WcFullScheduleSheet({ months, onClose }: { months: number; onClose: () 
       <Pressable style={styles.wcPickerScrim} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close schedule" />
       <Animated.View style={[styles.wcDetailsSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [460, 0] }) }] }]}>
         <View style={styles.sheetGrabber} />
-        <Text style={styles.wcDetailsTitle}>Plan details</Text>
+        {onBack ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <Pressable
+              testID="wc-schedule-back"
+              onPress={onBack}
+              accessibilityRole="button"
+              accessibilityLabel="Back to plan details"
+              style={[styles.wcSchedBackBtn, { backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)' } as object]}
+            >
+              <Text style={styles.wcSchedBackGlyph}>‹</Text>
+            </Pressable>
+            <Text style={styles.wcDetailsTitle}>Plan details</Text>
+          </View>
+        ) : (
+          <Text style={styles.wcDetailsTitle}>Plan details</Text>
+        )}
         <View style={{ gap: 2, marginBottom: 6 }}>
           <Text style={styles.wcDetailsStrong}>{months} monthly payments</Text>
           <Text style={styles.wcDetailsDim}>First payment today, then {months - 1} {wcPaymentsWord(months - 1)} monthly</Text>
@@ -1625,8 +1900,8 @@ function WcFullScheduleSheet({ months, onClose }: { months: number; onClose: () 
             </View>
           ))}
         </View>
-        <Pressable testID="wc-schedule-got-it" style={styles.wcGreenCta} onPress={onClose} accessibilityRole="button">
-          <Text style={styles.wcGreenCtaText}>Got it</Text>
+        <Pressable testID="wc-schedule-confirm" style={styles.wcGreenCta} onPress={onConfirm ?? onClose} accessibilityRole="button">
+          <Text style={styles.wcGreenCtaText}>Confirm plan</Text>
         </Pressable>
       </Animated.View>
     </View></ViewportLayer>
@@ -1649,7 +1924,11 @@ function WcWhyTodaySheet({ months, onClose }: { months: number; onClose: () => v
         <View style={styles.wcDetailsCard}>
           <View style={styles.wcWhyRow}>
             <View style={styles.wcWhyDot} />
-            <Text style={styles.wcWhyText}>Your discounted order is <Riyal size={10} color={muted} /> {wcMoney(WC_DISCOUNTED_TOTAL)}. Your available limit finances <Riyal size={10} color={muted} /> {wcMoney(WC_FINANCED_PRINCIPAL)}, so the required down payment is <Riyal size={10} color={muted} /> {wcMoney(WC_DOWN_PAYMENT)}.</Text>
+            {wcHasDiscount() ? (
+              <Text style={styles.wcWhyText}>Your discounted order is <Riyal size={10} color={muted} /> {wcMoney(wcOrderTotalFor(months))}. Your available limit finances <Riyal size={10} color={muted} /> {wcMoney(wcPrincipalFor(months))}, so the required down payment is <Riyal size={10} color={muted} /> {wcMoney(wcDownFor(months))}.</Text>
+            ) : (
+              <Text style={styles.wcWhyText}>Your order total is <Riyal size={10} color={muted} /> {wcMoney(wcCartTotalNow())}, split evenly with no fees and no interest. There is no down payment — today you simply pay the first of your {months} installments.</Text>
+            )}
           </View>
           <View style={styles.wcWhyRow}>
             <View style={styles.wcWhyDot} />
@@ -1673,7 +1952,8 @@ const WC_CART_ITEMS_LIST = [
   { name: "SMEG 50's Retro Refrigerator", sub: 'Right Handle · Black', amount: 7000.00 },
 ];
 
-function WcCartSheet({ onClose }: { onClose: () => void }) {
+function WcCartSheet({ onClose, months, picked }: { onClose: () => void; months?: number; picked?: boolean }) {
+  const discount = picked && months ? wcDiscountAmountFor(months) : 0;
   const rise = useRef(new Animated.Value(0)).current;
   useEffect(() => {
     Animated.timing(rise, { toValue: 1, duration: 280, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
@@ -1698,20 +1978,25 @@ function WcCartSheet({ onClose }: { onClose: () => void }) {
         <View style={[styles.wcDetailsCard, { gap: 10 }]}>
           <View style={styles.wcCartTotalRow}>
             <Text style={styles.wcDetailsDim}>Subtotal</Text>
-            <Money amount={wcMoney(WC_CART_TOTAL)} size={15} color={muted} />
+            <Money amount={wcMoney(wcCartTotalNow())} size={15} color={muted} />
           </View>
-          <View style={styles.wcCartTotalRow}>
-            <Text style={styles.wcCartDiscountLabel}>Tasheel discount (10%)</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Text style={styles.wcCartDiscountLabel}>− </Text>
-              <Money amount={wcMoney(WC_DISCOUNT_AMOUNT)} size={15} color={greenMid} weight="700" />
+          {discount > 0 && months ? (
+            <View style={styles.wcCartTotalRow}>
+              <Text style={styles.wcCartDiscountLabel}>Tasheel discount ({wcDiscountPctFor(months)}%)</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Text style={styles.wcCartDiscountLabel}>− </Text>
+                <Money amount={wcMoney(discount)} size={15} color={greenMid} weight="700" />
+              </View>
             </View>
-          </View>
+          ) : null}
           <View style={styles.wcCartTotalDivider} />
           <View style={styles.wcCartTotalRow}>
             <Text style={styles.wcDetailsLabel}>Total</Text>
-            <Money amount={wcMoney(WC_DISCOUNTED_TOTAL)} size={17} weight="700" />
+            <Money amount={wcMoney(discount > 0 && months ? wcOrderTotalFor(months) : wcCartTotalNow())} size={17} weight="700" />
           </View>
+          {wcHasDiscount() && !(discount > 0) ? (
+            <Text style={styles.wcDetailsDim}>Pick a plan to apply your discount — save up to {wcDiscountPctFor(36)}%.</Text>
+          ) : null}
         </View>
         <Pressable testID="wc-cart-got-it" style={styles.wcGreenCta} onPress={onClose} accessibilityRole="button">
           <Text style={styles.wcGreenCtaText}>Got it</Text>
@@ -1739,13 +2024,20 @@ const WC_MURABAHA_DOCUMENTS = [
 
 function WcMurabahaSheet({ accepted, setAccepted, onClose }: { accepted: boolean; setAccepted: (accepted: boolean) => void; onClose: () => void }) {
   const rise = useRef(new Animated.Value(0)).current;
+  const closing = useRef(false);
   const [documentTitle, setDocumentTitle] = useState<string | null>(null);
   useEffect(() => {
     Animated.timing(rise, { toValue: 1, duration: 280, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
   }, [rise]);
+  // Slide the sheet back down before unmounting so dismissal mirrors the entrance.
+  const dismiss = () => {
+    if (closing.current) return;
+    closing.current = true;
+    Animated.timing(rise, { toValue: 0, duration: 240, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => onClose());
+  };
   return (
     <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
-      <Pressable style={styles.wcPickerScrim} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close Murabaha documents" />
+      <Pressable style={styles.wcPickerScrim} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close Murabaha documents" />
       <Animated.View testID="wc-murabaha-sheet" style={[styles.wcMurabahaSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [540, 0] }) }] }]}>
         <View style={styles.wcMurabahaHeader}>
           {documentTitle ? (
@@ -1754,7 +2046,7 @@ function WcMurabahaSheet({ accepted, setAccepted, onClose }: { accepted: boolean
             </Pressable>
           ) : <View style={{ width: 44 }} />}
           <Text style={styles.wcMurabahaTitle}>{documentTitle ?? 'Murabaha documents'}</Text>
-          <Pressable testID="wc-murabaha-close" onPress={onClose} accessibilityRole="button" accessibilityLabel="Close" style={styles.wcMurabahaClose}>
+          <Pressable testID="wc-murabaha-close" onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" style={styles.wcMurabahaClose}>
             <Text style={styles.wcMurabahaCloseGlyph}>×</Text>
           </Pressable>
         </View>
@@ -1782,7 +2074,18 @@ function WcMurabahaSheet({ accepted, setAccepted, onClose }: { accepted: boolean
               ))}
             </View>
             <Text style={styles.wcMurabahaAgreeLabel}>Agree here:</Text>
-            <Pressable testID="wc-murabaha-accept" style={styles.wcMurabahaAccept} onPress={() => setAccepted(!accepted)} accessibilityRole="checkbox" accessibilityState={{ checked: accepted }}>
+            <Pressable
+              testID="wc-murabaha-accept"
+              style={styles.wcMurabahaAccept}
+              onPress={() => {
+                const next = !accepted;
+                setAccepted(next);
+                // Accepting is the sheet's terminal action — show the tick, then collapse.
+                if (next) setTimeout(dismiss, 300);
+              }}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: accepted }}
+            >
               <Text style={styles.wcMurabahaAcceptText}>Accept Murabaha agreement</Text>
               <View style={[styles.wcAgreementCheckbox, accepted && styles.wcAgreementCheckboxSelected]}>{accepted ? <Text style={styles.wcAgreementCheck}>✓</Text> : null}</View>
             </Pressable>
@@ -1802,9 +2105,23 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
   const canPay = method !== null && agreementAccepted;
   const payCta = (
     <View style={styles.wcStickyCtaBar} pointerEvents="auto">
-      <Pressable testID="wc-pay-cta" disabled={!canPay} style={[styles.wcGreenCta, { flexDirection: 'row', gap: 2 }, !canPay && styles.wcGreenCtaDisabled]} onPress={() => pay()} accessibilityRole="button" accessibilityState={{ disabled: !canPay }}>
-        <Text style={[styles.wcGreenCtaText, !canPay && styles.wcGreenCtaTextDisabled]}>Pay  </Text><Riyal size={12} color={canPay ? neon : muted} /><Text style={[styles.wcGreenCtaText, !canPay && styles.wcGreenCtaTextDisabled]}>{wcMoney(today)}</Text>
-      </Pressable>
+      {method === 'apple' ? (
+        // Apple Pay CTA (Figma 3477:75695): black pill —  logo, "Pay", Riyal amount, all white.
+        <Pressable testID="wc-pay-cta" disabled={!canPay} style={[styles.wcApplePayCta, !canPay && { opacity: 0.45 }]} onPress={() => pay()} accessibilityRole="button" accessibilityState={{ disabled: !canPay }} accessibilityLabel={`Pay ${wcMoney(today)} with Apple Pay`}>
+          <Image source={figmaImageSource('wcAppleLogoWhite')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcApplePayCtaApple} />
+          <View style={styles.wcApplePayCtaTextRow}>
+            <Text style={styles.wcApplePayCtaText}>Pay</Text>
+            <View style={styles.wcApplePayCtaPrice}>
+              <Image source={figmaImageSource('wcRiyalWhite')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcApplePayCtaRiyal} />
+              <Text style={styles.wcApplePayCtaText}>{wcMoney(today)}</Text>
+            </View>
+          </View>
+        </Pressable>
+      ) : (
+        <Pressable testID="wc-pay-cta" disabled={!canPay} style={[styles.wcGreenCta, { flexDirection: 'row', gap: 2 }, !canPay && styles.wcGreenCtaDisabled]} onPress={() => pay()} accessibilityRole="button" accessibilityState={{ disabled: !canPay }}>
+          <Text style={[styles.wcGreenCtaText, !canPay && styles.wcGreenCtaTextDisabled]}>Pay  </Text><Riyal size={12} color={canPay ? neon : muted} /><Text style={[styles.wcGreenCtaText, !canPay && styles.wcGreenCtaTextDisabled]}>{wcMoney(today)}</Text>
+        </Pressable>
+      )}
     </View>
   );
   const pay = () => {
@@ -1888,10 +2205,10 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
         </ScreenFade>
         {SHOW_FAKE_CHROME ? null : <ViewportLayer>{payCta}</ViewportLayer>}
         {sheet === 'details' ? <WcPlanDetailsSheet months={months} onClose={() => setSheet(null)} onViewSchedule={() => setSheet('schedule')} /> : null}
-        {sheet === 'schedule' ? <WcFullScheduleSheet months={months} onClose={() => setSheet(null)} /> : null}
+        {sheet === 'schedule' ? <WcFullScheduleSheet months={months} onClose={() => setSheet(null)} onBack={() => setSheet('details')} onConfirm={() => setSheet(null)} /> : null}
         {sheet === 'why' ? <WcWhyTodaySheet months={months} onClose={() => setSheet(null)} /> : null}
         {sheet === 'murabaha' ? <WcMurabahaSheet accepted={agreementAccepted} setAccepted={setAgreementAccepted} onClose={() => setSheet(null)} /> : null}
-        {sheet === 'leave' ? <WcLeaveSheet onStay={() => setSheet(null)} onLeave={() => setRoute('checkout')} /> : null}
+        {sheet === 'leave' ? <WcLeaveSheet onStay={() => setSheet(null)} onLeave={() => setRoute('gate')} /> : null}
         <View style={styles.wcStatusOverlay} pointerEvents="none"><StatusStrip pointerEvents="none" /></View>
       </View>
     </AppShell>
@@ -1974,7 +2291,7 @@ function WcSuccess({ months }: { months: number }) {
                 <Text style={styles.wcSuccessMerchantName}>Extrastores</Text>
                 <Text style={styles.wcSuccessMerchantSub}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
               </View>
-              <Money amount={wcMoney(WC_DISCOUNTED_TOTAL)} size={18} weight="700" />
+              <Money amount={wcMoney(wcOrderTotalFor(months))} size={18} weight="700" />
             </View>
           </View>
           <View style={styles.wcSuccessCard}>
@@ -1997,9 +2314,6 @@ function WcSuccess({ months }: { months: number }) {
               <Image source={figmaImageSource('wcBadgeGooglePlay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 91, height: 27 }} />
             </View>
           </View>
-          <Pressable testID="wc-success-open-app" style={styles.wcGreenCta} onPress={() => wcOpenTasheelApp(wcPurchaseDeepLink(months))} accessibilityRole="button" accessibilityLabel="Open the Tasheel app to view your plan">
-            <Text style={styles.wcGreenCtaText}>Open the Tasheel app</Text>
-          </Pressable>
         </View>
         <View style={styles.wcObBottom}>
           <SafariCompactBar url="extrastores.com" />
@@ -2058,7 +2372,7 @@ function WcNotification({ setRoute, months }: { setRoute: (r: RouteKey) => void;
                 <Text style={styles.wcNotifTime}>now</Text>
               </View>
               <Text style={styles.wcNotifTitle}>Purchase confirmed 🎉</Text>
-              <Text style={styles.wcNotifBody}>Your Extrastores purchase of <Riyal size={12} color={muted} /> {wcMoney(WC_DISCOUNTED_TOTAL)} after discount is split over {months} months. Tap to view your plan.</Text>
+              <Text style={styles.wcNotifBody}>Your Extrastores purchase of <Riyal size={12} color={muted} /> {wcMoney(wcOrderTotalFor(months))}{wcDiscountAmountFor(months) > 0 ? ' after discount' : ''} is split over {months} months. Tap to view your plan.</Text>
             </View>
           </Pressable>
         </Animated.View>
@@ -3994,6 +4308,9 @@ export default function App() {
   const [payMethod, setPayMethod] = useState<PayMethod>('card');
   const [wcPhone, setWcPhone] = useState('581723467');
   const [wcMonths, setWcMonths] = useState(3);
+  const [wcFlow, setWcFlow] = useState<WcFlow>('existing');
+  const [wcProduct, setWcProduct] = useState<WcProduct>('bnpl');
+  configureWcOffer(wcProduct, wcFlow);
   const [payCardLast4, setPayCardLast4] = useState('4521');
   const submitNewCard = (last4: string) => {
     setPayMethod('card');
@@ -4012,12 +4329,40 @@ export default function App() {
     setRouteState(r);
     const map: Record<RouteKey, string> = {
       checkout: '/checkout', appHome: '/checkout/app-home', detail: '/checkout/detail', insights: '/checkout/insights', insightsCategory: '/checkout/insights/category', insightsEmpty: '/checkout/insights/empty', purchases: '/checkout/purchases', dues: '/checkout/dues', nextUp: '/checkout/next-up', paymentMethod: '/checkout/payment-method', paymentSelected: '/checkout/payment-method/selected', addCard: '/checkout/payment-method/add-card', cardAdded: '/checkout/payment-method/added', otp: '/checkout/otp', processing: '/checkout/processing', insufficient: '/checkout/insufficient', declined: '/checkout/declined', success: '/checkout/success',
-      wcMobile: '/checkout/onboarding/mobile', wcOtp: '/checkout/onboarding/otp', wcIdentity: '/checkout/onboarding/identity', wcNafath: '/checkout/onboarding/nafath', wcQuickCall: '/checkout/onboarding/quick-call', wcTenure: '/checkout/onboarding/tenure', wcPayment: '/checkout/onboarding/payment', wcProcessing: '/checkout/onboarding/processing', wcSuccess: '/checkout/onboarding/success', wcNotification: '/checkout/notification', saLogin: '/checkout/login', saOtp: '/checkout/otp-login', saAddCard: '/checkout/add-card-home', superHome: '/checkout/superhome'
+      wcMobile: '/checkout/onboarding/mobile', wcOtp: '/checkout/onboarding/otp', wcIdentity: '/checkout/onboarding/identity', wcNafath: '/checkout/onboarding/nafath', wcQuickCall: '/checkout/onboarding/quick-call', wcTenure: '/checkout/onboarding/tenure', wcPayment: '/checkout/onboarding/payment', wcProcessing: '/checkout/onboarding/processing', wcSuccess: '/checkout/onboarding/success', wcNotification: '/checkout/notification', saLogin: '/checkout/login', saOtp: '/checkout/otp-login', saAddCard: '/checkout/add-card-home', superHome: '/checkout/superhome',
+      gate: '/demos'
     };
     pushPath(map[r]);
   };
-  if (route === 'wcMobile') return <WcMobile setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} />;
-  if (route === 'wcOtp') return <WcOtp setRoute={setRoute} phone={wcPhone} />;
+  const startDemo = (flow: WcFlow, product: WcProduct) => {
+    setWcFlow(flow);
+    setWcProduct(product);
+    configureWcOffer(product, flow);
+    setWcMonths(product === 'bnpl' ? 3 : 4);
+    setRoute('checkout');
+  };
+  const bnplMax = wcFlow === 'new' ? 6 : 4;
+  const bnplMonthly = wcMoney(Math.round((WC_BNPL_CART_TOTAL / bnplMax) * 100) / 100);
+  const tasheelOffer = wcProduct === 'bnpl'
+    ? {
+        title: 'Split the cost. Pay nothing extra.',
+        body: wcFlow === 'new'
+          ? `Pay from ${bnplMonthly} a month over up to ${bnplMax} months — 0% interest, 0 fees.`
+          : `Pay ${bnplMonthly} a month for ${bnplMax} months — 0% interest, 0 fees.`,
+        planMax: bnplMax,
+        planMin: 2,
+        aria: `Split the cost with Tasheel and pay nothing extra: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
+      }
+    : {
+        title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
+        body: `Save up to 10% off your cart and pay over up to 36 months.`,
+        planMax: 36,
+        planMin: 4,
+        aria: `Continue with Tasheel Finance: save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}, up to 10 percent off your cart, pay over up to 36 months`,
+      };
+  if (route === 'gate') return <DemoGate startDemo={startDemo} />;
+  if (route === 'wcMobile') return <WcMobile setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} requireConsent={wcFlow === 'new'} />;
+  if (route === 'wcOtp') return <WcOtp setRoute={setRoute} phone={wcPhone} nextRoute={wcFlow === 'new' ? 'wcIdentity' : 'wcQuickCall'} />;
   if (route === 'wcIdentity') return <WcIdentity setRoute={setRoute} />;
   if (route === 'wcNafath') return <WcNafath setRoute={setRoute} />;
   if (route === 'wcQuickCall') return <WcQuickCall setRoute={setRoute} />;
@@ -4045,7 +4390,7 @@ export default function App() {
   if (route === 'insufficient') return <StatusLike kind="insufficient" title="Insufficient funds" body="This card does not have enough available balance. Choose another method or try again." cta="Choose another method" onPress={() => setRoute('paymentMethod')} onBack={() => setRoute('paymentSelected')} />;
   if (route === 'declined') return <StatusLike kind="declined" title="Payment declined" body="The bank declined this payment. No dues were paid." cta="Try again" onPress={() => setRoute('paymentMethod')} onBack={() => setRoute('paymentSelected')} />;
   if (route === 'success') return <PaymentSuccess setRoute={setRoute} summary={duesSummary} />;
-  return <Checkout setRoute={setRoute} />;
+  return <Checkout setRoute={setRoute} offer={tasheelOffer} />;
 }
 
 const styles = StyleSheet.create({
@@ -4140,7 +4485,7 @@ const styles = StyleSheet.create({
   wcOtpContent: { paddingHorizontal: 16, paddingTop: 50 },
   wcOtpTitle: { fontSize: 28, lineHeight: 36, fontWeight: '700', color: '#000', letterSpacing: 0.36 },
   wcOtpSubRow: { marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  wcOtpSubText: { width: 256, fontSize: 16, lineHeight: 21, color: '#4a5565', letterSpacing: -0.32 },
+  wcOtpSubText: { width: '100%', fontSize: 14, lineHeight: 20, color: '#4a5565', letterSpacing: -0.2 },
   wcEditPill: { minHeight: 28, maxHeight: 28, minWidth: 49, borderRadius: 9999, backgroundColor: '#e5e7eb', paddingHorizontal: 10, paddingVertical: 4, alignItems: 'center', justifyContent: 'center' },
   wcEditPillText: { fontSize: 15, lineHeight: 18, fontWeight: '500', color: text, letterSpacing: -0.08 },
   wcOtpBoxRow: { marginTop: 24, flexDirection: 'row', gap: 16 },
@@ -4150,6 +4495,11 @@ const styles = StyleSheet.create({
   wcResendText: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08 },
   wcOtpBox: { flex: 1, height: 56, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: borderSubtle, alignItems: 'center', justifyContent: 'center' },
   wcOtpBoxActive: { borderWidth: 0.8, borderColor: '#23a107', shadowColor: 'rgba(62,255,0,1)', shadowOpacity: 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 8 } },
+  // Error treatment from Figma 3299:37403 — incorrect Code.
+  wcOtpBoxError: { borderWidth: 1, borderColor: '#ec221f', shadowColor: 'rgba(236,34,31,1)', shadowOpacity: 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 8 } },
+  wcOtpErrorText: { width: '100%', marginTop: -8, fontSize: 12, lineHeight: 16, color: '#6e0f0d' },
+  wcSchedBackBtn: { width: 36, height: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(249,250,251,0.75)', borderWidth: 1, borderColor: '#ffffff', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 2 } },
+  wcSchedBackGlyph: { fontSize: 22, lineHeight: 24, color: '#1b1b1b', marginTop: -2 },
   wcOtpBoxDigit: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: text, letterSpacing: -0.24 },
   wcOtpBoxCaret: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: '#6b7280' },
   wcTimerRow: { marginTop: 24, flexDirection: 'row', gap: 4, alignItems: 'center', alignSelf: 'center' },
@@ -4300,16 +4650,17 @@ const styles = StyleSheet.create({
     ? { paddingHorizontal: 16, width: '100%' }
     : { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 22, backgroundColor: 'rgba(249,250,251,0.96)', zIndex: 30, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: -4 } },
   wcWhyDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#9ca3af', marginTop: 7 },
-  wcQcArtWrap: { marginTop: SHOW_FAKE_CHROME ? 50 : 44, marginHorizontal: 16, height: 300, borderRadius: 24, overflow: 'hidden', alignItems: 'center' },
-  wcQcArt: { width: '100%', aspectRatio: 358 / 722 },
+  // Fixed-height art window (Figma shows only the top ~40% of the phone mockup).
+  wcQcHero: { height: 317, marginHorizontal: 16, marginTop: 16, overflow: 'hidden' },
+  wcQcHeroArt: { width: '100%', aspectRatio: 900 / 1840 },
   wcQcToast: { position: 'absolute', top: SHOW_FAKE_CHROME ? 56 : 16, alignSelf: 'center', zIndex: 20, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: green, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 10, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 16, shadowOffset: { width: 0, height: 6 } },
   wcQcToastDot: { width: 16, height: 16, borderRadius: 8, backgroundColor: neon, alignItems: 'center', justifyContent: 'center' },
   wcQcToastCheck: { fontSize: 10, fontWeight: '800', color: green },
   wcQcToastText: { fontSize: 14, lineHeight: 18, fontWeight: '600', color: neon },
-  wcQcPanel: { backgroundColor: '#fff', marginTop: -28, borderTopLeftRadius: 28, borderTopRightRadius: 28, paddingHorizontal: 16, paddingTop: 32, paddingBottom: 24, alignItems: 'center', gap: 8 },
-  wcQcTitle: { fontSize: 28, lineHeight: 36, fontWeight: '700', color: text, letterSpacing: 0.36, textAlign: 'center' },
-  wcQcSub: { fontSize: 14, lineHeight: 20, color: muted, textAlign: 'center', maxWidth: 330 },
-  wcQcCta: { minWidth: 138, alignSelf: 'center', marginTop: 16, paddingHorizontal: 24 },
+  wcQcPanel: { flex: 1, backgroundColor: '#fff', paddingHorizontal: 16, paddingTop: 32, paddingBottom: 8, alignItems: 'center', gap: 24, shadowColor: '#000', shadowOpacity: 0.25, shadowRadius: 38, shadowOffset: { width: 0, height: -8 } },
+  wcQcTitle: { fontSize: 34, lineHeight: 41, fontWeight: '700', color: text, letterSpacing: 0.38 },
+  wcQcSub: { fontSize: 15, lineHeight: 20, letterSpacing: -0.24, color: text },
+  wcQcCta: { minWidth: 138, alignSelf: 'center', paddingHorizontal: 24 },
   wcQcCountPill: { alignSelf: 'center', marginTop: 16, backgroundColor: '#eceff1', borderRadius: 999, paddingHorizontal: 20, paddingVertical: 13 },
   wcQcCountText: { fontSize: 15, lineHeight: 20, fontWeight: '500', color: muted },
   wcLeaveBody: { fontSize: 14, lineHeight: 20, color: muted, letterSpacing: -0.15, marginTop: -4, marginBottom: 6 },
@@ -4966,4 +5317,65 @@ const styles = StyleSheet.create({
   successAddressIconLeft: { position: 'absolute', left: 14, width: 15, height: 18 },
   successAddressIconRight: { position: 'absolute', right: 12, width: 15, height: 18 },
   successBrowserHomeIndicator: { position: 'absolute', bottom: 8, left: 123, width: 144, height: 5, borderRadius: 100, backgroundColor: '#030712' },
+
+  // --- Choose-plan list (Figma 4406:63560) ---
+  wcApplePayCta: { backgroundColor: '#000000', borderRadius: 9999, minHeight: 50, maxHeight: 50, flexDirection: 'row', gap: 10, alignItems: 'center', justifyContent: 'center', width: '100%', paddingHorizontal: 20, paddingVertical: 14 },
+  wcApplePayCtaApple: { width: 15, height: 18 },
+  wcApplePayCtaTextRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  wcApplePayCtaText: { fontSize: 17, lineHeight: 22, fontWeight: '500', letterSpacing: -0.41, color: '#ffffff' },
+  wcApplePayCtaPrice: { flexDirection: 'row', alignItems: 'center', gap: 2 },
+  wcApplePayCtaRiyal: { width: 14, height: 14 },
+  wcConsentRow: { flexDirection: 'row', alignItems: 'center', gap: 10, width: '100%', marginVertical: 4 },
+  wcConsentBox: { width: 18, height: 18, borderRadius: 2, alignItems: 'center', justifyContent: 'center' },
+  wcConsentBoxUnchecked: { borderWidth: 2, borderColor: '#e5e7eb' },
+  wcConsentBoxChecked: { backgroundColor: text },
+  wcConsentCheck: { position: 'absolute', width: 24, height: 24, left: -3, top: -3 },
+  wcConsentText: { flex: 1, fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: text },
+  wcConsentBold: { fontWeight: '700' },
+  wcCondenseRow: { overflow: 'hidden' },
+  wcListFade: { position: 'absolute', left: 0, right: 0, bottom: 0, height: 96, zIndex: 5 },
+  wcCondenseInner: { height: 40, paddingTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  wcCondenseLabel: { fontSize: 12, lineHeight: 16, color: muted },
+  wcPlanListTitle: { fontSize: 22, lineHeight: 28, fontWeight: '700', color: text, letterSpacing: 0.3 },
+  wcPlanRow: { backgroundColor: surface, borderRadius: 16, borderWidth: 1, borderColor: 'transparent', paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 66 },
+  wcPlanRowSelected: { backgroundColor: '#f0fdf4', borderColor: '#23a107', borderRadius: 24 },
+  wcPlanRowLabel: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: text, letterSpacing: -0.24 },
+  wcPlanRowNote: { fontSize: 12, lineHeight: 16, color: muted },
+  wcPlanRowFeeLine: { flexDirection: 'row', alignItems: 'center' },
+  wcPlanDiscountChip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#e5ffed', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
+  wcPlanDiscountText: { fontSize: 11, lineHeight: 14, fontWeight: '500', color: text, letterSpacing: 0.06 },
+  wcPlanDiscountAmt: { flexDirection: 'row', alignItems: 'center' },
+  wcPlanDiscountSave: { fontSize: 11, lineHeight: 14, fontWeight: '600', color: green, letterSpacing: 0.06 },
+  wcPlanPriceRow: { flexDirection: 'row', alignItems: 'center' },
+  wcPlanPrice: { fontSize: 22, lineHeight: 28, fontWeight: '700', color: text, letterSpacing: 0.2 },
+  wcPlanPriceUnit: { fontSize: 15, lineHeight: 22, color: muted, letterSpacing: -0.3, marginLeft: 1 },
+  wcBenefitLayer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 30 },
+  wcBenefitSheet: { position: 'absolute', left: 0, right: 0, bottom: 0, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 28, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
+  wcBenefitTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  wcBenefitTitle: { fontSize: 17, lineHeight: 24, fontWeight: '600', color: text, letterSpacing: -0.41 },
+  wcBenefitPlanChip: { backgroundColor: '#f0f0f0', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
+  wcBenefitPlanChipText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: text, letterSpacing: -0.08 },
+  wcBenefitBox: { backgroundColor: '#e5ffed', borderRadius: 16, padding: 12, gap: 6 },
+  wcBenefitHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  wcBenefitHead: { fontSize: 13, lineHeight: 17, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
+  wcBenefitBodyRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
+  wcBenefitBody: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08 },
+  wcBenefitButtons: { flexDirection: 'row', gap: 12 },
+
+  // --- Demo gate ---
+  gateScreen: { flex: 1, backgroundColor: canvas },
+  gateBody: { flex: 1, paddingHorizontal: 24, paddingTop: 120, gap: 28 },
+  gateLogo: { width: 132, height: 39, alignSelf: 'flex-start' },
+  gateTitle: { fontSize: 30, lineHeight: 36, fontWeight: '700', color: text },
+  gateSub: { fontSize: 15, lineHeight: 21, color: muted, letterSpacing: -0.24 },
+  gateCard: { borderRadius: 24, padding: 20, gap: 8 },
+  gateCardPrimary: { backgroundColor: green },
+  gateCardPrimaryTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700', color: '#ffffff' },
+  gateCardPrimarySub: { fontSize: 13, lineHeight: 18, color: 'rgba(255,255,255,0.72)' },
+  gateCardPrimaryCta: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: neon, marginTop: 6 },
+  gateCardSecondary: { backgroundColor: surface, borderWidth: 1, borderColor: '#e5e7eb' },
+  gateCardSecondaryTitle: { fontSize: 18, lineHeight: 24, fontWeight: '700', color: text },
+  gateCardSecondarySub: { fontSize: 13, lineHeight: 18, color: muted },
+  gateCardSecondaryCta: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: greenMid, marginTop: 6 },
+  gateBackText: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: greenMid },
 });
