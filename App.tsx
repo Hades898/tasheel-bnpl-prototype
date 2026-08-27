@@ -1223,31 +1223,24 @@ function WcOtp({ setRoute, phone, nextRoute = 'wcQuickCall' }: { setRoute: (r: R
 }
 
 // Figma 1628:32393 — Identity Verification (Yaqeen). DOB uses the native iOS date picker.
-const HIJRI_MONTHS = ['Muharram', 'Safar', "Rabi' I", "Rabi' II", 'Jumada I', 'Jumada II', 'Rajab', "Sha'ban", 'Ramadan', 'Shawwal', "Dhu al-Qi'dah", 'Dhu al-Hijjah'];
+// Exact Umm al-Qura conversion via the browser's built-in Islamic calendar —
+// the user picks on the native iOS date wheel, we display the true Hijri date.
+const formatHijri = (isoDate: string) => {
+  try {
+    return new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(`${isoDate}T12:00:00`));
+  } catch {
+    return isoDate;
+  }
+};
 
 function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   const [idNumber, setIdNumber] = useState('');
   const [dob, setDob] = useState(''); // yyyy-mm-dd from the native date input
-  const [hijri, setHijri] = useState({ day: '', month: '', year: '' });
   const dobRef = useRef<HTMLInputElement | null>(null);
   // Saudi national IDs start with 1 (Hijri birth records); iqama numbers start
-  // with 2 (Gregorian). The calendar follows the ID prefix automatically.
+  // with 2 (Gregorian). The calendar display follows the ID prefix automatically.
   const useHijri = idNumber.startsWith('1');
-  const dobComplete = useHijri ? Boolean(hijri.day && hijri.month && hijri.year) : dob.length === 10;
-  const valid = idNumber.replace(/\D/g, '').length === 10 && dobComplete;
-  const hijriSelectStyle = { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: '#030712', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none' as const, minHeight: 22, letterSpacing: '-0.24px' };
-  const hijriSelect = (key: 'day' | 'month' | 'year', placeholder: string, options: string[], flexGrow: number) =>
-    createElement(
-      'select',
-      {
-        'data-testid': `wc-dob-hijri-${key}`,
-        value: hijri[key],
-        onChange: (e: { target: { value: string } }) => setHijri(prev => ({ ...prev, [key]: e.target.value })),
-        style: { ...hijriSelectStyle, flexGrow, color: hijri[key] ? '#030712' : '#4b5563' },
-      },
-      createElement('option', { value: '', disabled: true, hidden: true }, placeholder),
-      ...options.map(option => createElement('option', { key: option, value: option }, option)),
-    );
+  const valid = idNumber.replace(/\D/g, '').length === 10 && dob.length === 10;
   const openNativePicker = () => {
     const el = dobRef.current;
     if (!el) return;
@@ -1276,31 +1269,31 @@ function WcIdentity({ setRoute }: { setRoute: (r: RouteKey) => void }) {
               </View>
               <View style={{ gap: 12, width: '100%' }}>
                 <Text style={styles.wcFieldLabel}>Date of Birth{useHijri ? ' (Hijri)' : ''}</Text>
-                {useHijri ? (
-                  <View style={[styles.wcInputRow, { gap: 8 }]}>
-                    {hijriSelect('day', 'Day', Array.from({ length: 30 }, (_, i) => String(i + 1)), 0.7)}
-                    {hijriSelect('month', 'Month', HIJRI_MONTHS, 1.6)}
-                    {hijriSelect('year', 'Year', Array.from({ length: 70 }, (_, i) => String(1429 - i)), 0.9)}
+                <View style={styles.wcInputRow}>
+                  {/* Native date input so iOS presents its own calendar/wheel picker.
+                      In Hijri mode the raw value is hidden and the converted
+                      Umm al-Qura date is overlaid instead. */}
+                  {createElement('input', {
+                    'data-testid': 'wc-dob-input',
+                    type: 'date',
+                    ref: dobRef,
+                    value: dob,
+                    min: '1940-01-01',
+                    max: '2008-12-31',
+                    onChange: (e: { target: { value: string } }) => setDob(e.target.value),
+                    style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: useHijri ? 'transparent' : dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
+                  })}
+                  {useHijri ? (
+                    <View pointerEvents="none" style={styles.wcHijriOverlay}>
+                      <Text testID="wc-dob-hijri-label" numberOfLines={1} style={[styles.wcHijriOverlayText, !dob && { color: '#4b5563' }]}>
+                        {dob ? formatHijri(dob) : 'Pick your birth date'}
+                      </Text>
+                    </View>
+                  ) : null}
+                  <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
                     <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
-                  </View>
-                ) : (
-                  <View style={styles.wcInputRow}>
-                    {/* Native date input so iOS presents its own calendar/wheel picker. */}
-                    {createElement('input', {
-                      'data-testid': 'wc-dob-input',
-                      type: 'date',
-                      ref: dobRef,
-                      value: dob,
-                      min: '1940-01-01',
-                      max: '2008-12-31',
-                      onChange: (e: { target: { value: string } }) => setDob(e.target.value),
-                      style: { flex: 1, border: 'none', outline: 'none', background: 'transparent', fontSize: 15, color: dob ? '#030712' : '#4b5563', fontFamily: 'inherit', padding: 0, margin: 0, WebkitAppearance: 'none', appearance: 'none', minHeight: 22, letterSpacing: '-0.24px' },
-                    })}
-                    <Pressable testID="wc-dob-calendar" onPress={openNativePicker} hitSlop={8} accessibilityRole="button" accessibilityLabel="Pick date of birth">
-                      <Image source={figmaImageSource('wcCalendar')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 24, height: 24 }} />
-                    </Pressable>
-                  </View>
-                )}
+                  </Pressable>
+                </View>
               </View>
               <Pressable testID="wc-identity-confirm" disabled={!valid} style={[styles.wcGreenCta, { width: '100%' }, !valid && styles.wcGreenCtaDisabled]} onPress={() => valid && setRoute('wcNafath')} accessibilityRole="button" accessibilityState={{ disabled: !valid }}>
                 <Text style={[styles.wcGreenCtaText, !valid && styles.wcGreenCtaTextDisabled]}>Confirm</Text>
@@ -1416,14 +1409,17 @@ const wcPlanFeeRate = (months: number) => WC_FEE_RATES[months] ?? 0;
 const wcHasDiscount = () => wcActiveProduct !== 'bnpl';
 // BNPL demos a lower-value ticket; BNPL Plus keeps the big-ticket fixture.
 const WC_BNPL_CART_TOTAL = 2000.00;
+// Per-tenure discount schedule shared by both products (2- and 3-month plans
+// carry no discount). BNPL Plus additionally reaches the longer tenures.
 const WC_PLUS_DISCOUNT_RATES: Record<number, number> = { 4: 0.02, 6: 0.02, 9: 0.02, 12: 0.05, 24: 0.1, 36: 0.1 };
 const WC_PLUS_MAX_DISCOUNT_RATE = 0.1;
 const wcCartTotalNow = () => (wcActiveProduct === 'bnpl' ? WC_BNPL_CART_TOTAL : WC_CART_TOTAL);
-const wcDiscountRateFor = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : WC_PLUS_DISCOUNT_RATES[months] ?? 0);
+const wcMaxDiscountPctNow = () => (wcActiveProduct === 'bnpl' ? 2 : 10);
+const wcDiscountRateFor = (months: number) => WC_PLUS_DISCOUNT_RATES[months] ?? 0;
 const wcDiscountPctFor = (months: number) => Math.round(wcDiscountRateFor(months) * 100);
 const wcDiscountAmountFor = (months: number) => Math.round(wcCartTotalNow() * wcDiscountRateFor(months) * 100) / 100;
 const wcOrderTotalFor = (months: number) => Math.round((wcCartTotalNow() - wcDiscountAmountFor(months)) * 100) / 100;
-const wcPrincipalFor = (months: number) => (wcActiveProduct === 'bnpl' ? WC_BNPL_CART_TOTAL : Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT));
+const wcPrincipalFor = (months: number) => (wcActiveProduct === 'bnpl' ? wcOrderTotalFor(months) : Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT));
 const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(months) - wcPrincipalFor(months)) * 100) / 100);
 const wcPlanFee = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : Math.round(wcPrincipalFor(months) * wcPlanFeeRate(months) * 100) / 100);
 const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months)) * 100) / 100;
@@ -1572,14 +1568,14 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
               <View style={styles.wcCondenseInner}>
                 <Text style={styles.wcCondenseLabel}>Choose how to split</Text>
                 <View style={styles.wcCartRight}>
-                  {picked && wcHasDiscount() ? (
+                  {picked && wcDiscountAmountFor(months) > 0 ? (
                     <>
                       <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>{wcDiscountPctFor(months)}% off</Text></View>
-                      <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(WC_CART_TOTAL))}</Text>
+                      <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(wcCartTotalNow()))}</Text>
                       <Money amount={wcMoney(wcOrderTotalFor(months))} size={17} weight="600" />
                     </>
                   ) : (
-                    <Money amount={wcMoney(WC_CART_TOTAL)} size={17} weight="600" />
+                    <Money amount={wcMoney(wcCartTotalNow())} size={17} weight="600" />
                   )}
                 </View>
               </View>
@@ -1599,10 +1595,10 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                 <Text style={styles.wcCartItems}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
               </View>
               <View style={styles.wcCartRight}>
-                {picked && wcHasDiscount() ? (
+                {picked && wcDiscountAmountFor(months) > 0 ? (
                   <>
                     <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>{wcDiscountPctFor(months)}% off</Text></View>
-                    <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(WC_CART_TOTAL))}</Text>
+                    <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(wcCartTotalNow()))}</Text>
                     <Money amount={wcMoney(wcOrderTotalFor(months))} size={16} weight="700" />
                   </>
                 ) : (
@@ -1688,7 +1684,7 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                   <View style={styles.wcBenefitPlanChip}><Text style={styles.wcBenefitPlanChipText}>{months} Payments</Text></View>
                 </View>
                 <View style={styles.wcBenefitBox}>
-                  {wcHasDiscount() ? (
+                  {wcDiscountAmountFor(months) > 0 ? (
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
@@ -1779,10 +1775,14 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
         </View>
         <View style={styles.wcDetailsCard}>
           <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Order total</Text><Money amount={wcMoney(wcCartTotalNow())} size={17} /></View>
-          {wcHasDiscount() ? (
+          {wcDiscountAmountFor(months) > 0 ? (
             <>
               <View style={styles.reviewDivider} />
               <View style={styles.reviewLine}><Text style={[styles.wcDetailsLabel, { color: greenMid }]}>Tasheel discount ({wcDiscountPctFor(months)}%)</Text><Text style={styles.wcFeeFree}>− <Riyal size={10} color={greenMid} /> {wcMoney(wcDiscountAmountFor(months))}</Text></View>
+            </>
+          ) : null}
+          {wcHasDiscount() ? (
+            <>
               <View style={styles.reviewDivider} />
               <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Available BNPL limit</Text><Money amount={wcMoney(WC_AVAILABLE_LIMIT)} size={17} /></View>
               <View style={styles.reviewDivider} />
@@ -1994,8 +1994,8 @@ function WcCartSheet({ onClose, months, picked }: { onClose: () => void; months?
             <Text style={styles.wcDetailsLabel}>Total</Text>
             <Money amount={wcMoney(discount > 0 && months ? wcOrderTotalFor(months) : wcCartTotalNow())} size={17} weight="700" />
           </View>
-          {wcHasDiscount() && !(discount > 0) ? (
-            <Text style={styles.wcDetailsDim}>Pick a plan to apply your discount — save up to {wcDiscountPctFor(36)}%.</Text>
+          {!(discount > 0) ? (
+            <Text style={styles.wcDetailsDim}>Pick a plan to apply your discount — save up to {wcMaxDiscountPctNow()}%.</Text>
           ) : null}
         </View>
         <Pressable testID="wc-cart-got-it" style={styles.wcGreenCta} onPress={onClose} accessibilityRole="button">
@@ -2275,7 +2275,15 @@ function WcProcessing({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 // web screen: the flow hands off to the installed Tasheel app from here. The
 // handoff is an explicit tap rather than a timed redirect, because iOS only
 // honours a custom-scheme navigation that comes from a real user gesture.
-function WcSuccess({ months }: { months: number }) {
+function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKey) => void }) {
+  const [redirectIn, setRedirectIn] = useState(10);
+  useEffect(() => {
+    const tick = setInterval(() => setRedirectIn(v => Math.max(0, v - 1)), 1000);
+    return () => clearInterval(tick);
+  }, []);
+  useEffect(() => {
+    if (redirectIn === 0) setRoute('checkout');
+  }, [redirectIn, setRoute]);
   return (
     <AppShell scroll={!SHOW_FAKE_CHROME}>
       <View testID="wc-success-1691-67703" style={SHOW_FAKE_CHROME ? styles.wcObScreenFixed : [styles.wcObScreen, { flex: 1 }]}>
@@ -2314,6 +2322,7 @@ function WcSuccess({ months }: { months: number }) {
               <Image source={figmaImageSource('wcBadgeGooglePlay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 91, height: 27 }} />
             </View>
           </View>
+          <Text testID="wc-success-redirect" style={styles.wcSuccessRedirect}>Redirecting to merchant in {redirectIn}s…</Text>
         </View>
         <View style={styles.wcObBottom}>
           <SafariCompactBar url="extrastores.com" />
@@ -4377,7 +4386,7 @@ export default function App() {
   if (route === 'wcTenure') return <WcTenure setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} />;
   if (route === 'wcPayment') return <WcPayment setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} />;
   if (route === 'wcProcessing') return <WcProcessing setRoute={setRoute} />;
-  if (route === 'wcSuccess') return <WcSuccess months={wcMonths} />;
+  if (route === 'wcSuccess') return <WcSuccess months={wcMonths} setRoute={setRoute} />;
   if (route === 'wcNotification') return <WcNotification setRoute={setRoute} months={wcMonths} />;
   if (route === 'saLogin') return <SaLogin setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} />;
   if (route === 'saOtp') return <SaOtp setRoute={setRoute} phone={wcPhone} />;
@@ -4506,6 +4515,9 @@ const styles = StyleSheet.create({
   // Error treatment from Figma 3299:37403 — incorrect Code.
   wcOtpBoxError: { borderWidth: 1, borderColor: '#ec221f', shadowColor: 'rgba(236,34,31,1)', shadowOpacity: 0.08, shadowRadius: 20, shadowOffset: { width: 0, height: 8 } },
   wcOtpErrorText: { width: '100%', marginTop: -8, fontSize: 12, lineHeight: 16, color: '#6e0f0d' },
+  wcSuccessRedirect: { textAlign: 'center', fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted, marginTop: 4 },
+  wcHijriOverlay: { position: 'absolute', left: 16, right: 52, top: 0, bottom: 0, justifyContent: 'center' },
+  wcHijriOverlayText: { fontSize: 15, letterSpacing: -0.24, color: '#030712' },
   wcSchedBackBtn: { width: 36, height: 36, borderRadius: 999, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(249,250,251,0.75)', borderWidth: 1, borderColor: '#ffffff', shadowColor: '#000', shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 2 } },
   wcSchedBackGlyph: { fontSize: 22, lineHeight: 24, color: '#1b1b1b', marginTop: -2 },
   wcOtpBoxDigit: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: text, letterSpacing: -0.24 },
