@@ -197,6 +197,9 @@ if (typeof document !== 'undefined') {
       // The DOB field draws its own calendar icon; hide the browser's built-in one.
       `input[type="date"]::-webkit-calendar-picker-indicator{display:none;-webkit-appearance:none;opacity:0;}`,
       `[data-saviewport="1"]{padding-bottom:0 !important;padding-top:0 !important;}`,
+      // Give the document a real background — without it iOS Safari tints its
+      // translucent top/bottom chrome with a default grey instead of the page.
+      `html,body,#root{background-color:#ffffff;}`,
     ].join('');
     document.head.appendChild(el);
   }
