@@ -1544,7 +1544,11 @@ const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(mo
 const wcPlanFee = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : Math.round(wcPrincipalFor(months) * wcPlanFeeRate(months) * 100) / 100);
 const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months)) * 100) / 100;
 const wcPlanMonthly = (months: number) => Math.round(((wcPrincipalFor(months) + wcPlanFee(months)) / months) * 100) / 100;
-const wcPlanToday = (months: number) => Math.round((wcDownFor(months) + wcPlanMonthly(months)) * 100) / 100;
+// Plus 2-3 month plans collect only the down payment today; every installment
+// lands on the following months. All other plans include the first installment.
+const wcIsShortPlusPlan = (months: number) => wcActiveProduct !== 'bnpl' && months <= 3;
+const wcInstallmentsAfterToday = (months: number) => (wcIsShortPlusPlan(months) ? months : months - 1);
+const wcPlanToday = (months: number) => Math.round((wcDownFor(months) + (wcIsShortPlusPlan(months) ? 0 : wcPlanMonthly(months))) * 100) / 100;
 // Deep link into the native Tasheel SwiftUI app. Nothing happens if the app is
 // not installed, so the current web screen remains available as a fallback.
 const wcOpenTasheelApp = (destination = 'tasheel://bnpl') => {
@@ -1832,7 +1836,7 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                         {wcDownFor(months) > 0 ? (
                           <>
                             <Riyal size={11} color={muted} />
-                            <Text style={styles.wcBenefitBody}>{wcMoney(wcDownFor(months))} down, then</Text>
+                            <Text style={styles.wcBenefitBody}>{wcMoney(wcDownFor(months))} down payment, then</Text>
                           </>
                         ) : (
                           <Text style={styles.wcBenefitBody}>Pay</Text>
@@ -1874,7 +1878,7 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
   useEffect(() => {
     Animated.timing(rise, { toValue: 1, duration: 280, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
   }, [rise]);
-  const endMonth = MONTH_NAMES[(6 + months - 2) % 12]; // monthlies run 1 Jul .. 1 (Jul+n-2); demo clock June 2026
+  const endMonth = MONTH_NAMES[(6 + wcInstallmentsAfterToday(months) - 1) % 12]; // monthlies run 1 Jul onward; demo clock June 2026
   const startMonth = MONTH_NAMES[6 % 12];
   return (
     <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
@@ -1915,8 +1919,7 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
           ) : null}
           {wcHasDiscount() ? (
             <>
-              <View style={styles.reviewDivider} />
-              <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Available BNPL limit</Text><Money amount={wcMoney(WC_AVAILABLE_LIMIT)} size={17} /></View>
+
               <View style={styles.reviewDivider} />
               <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Down payment</Text><Money amount={wcMoney(wcDownFor(months))} size={17} /></View>
             </>
@@ -1979,10 +1982,16 @@ function WcFullScheduleSheet({ months, onClose, onBack, onConfirm }: { months: n
   useEffect(() => {
     Animated.timing(rise, { toValue: 1, duration: 280, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
   }, [rise]);
-  const rows = Array.from({ length: months }, (_, i) => {
-    if (i === 0) return { label: 'Today', sub: wcDownFor(months) > 0 ? 'Down payment' : `Payment 1 of ${months}`, amount: wcPlanToday(months), badge: 'Due today' as const };
-    return { label: `1 ${MONTH_NAMES[(6 + i - 1) % 12].slice(0, 3)}`, sub: `Payment ${i + 1} of ${months}`, amount: wcPlanMonthly(months), badge: i === months - 1 ? ('Final' as const) : null };
-  });
+  const after = wcInstallmentsAfterToday(months);
+  const rows = [
+    { label: 'Today', sub: wcDownFor(months) > 0 ? 'Down payment' : `Payment 1 of ${months}`, amount: wcPlanToday(months), badge: 'Due today' as 'Due today' | 'Final' | null },
+    ...Array.from({ length: after }, (_, i) => ({
+      label: `1 ${MONTH_NAMES[(6 + i) % 12].slice(0, 3)}`,
+      sub: `Payment ${months - after + i + 1} of ${months}`,
+      amount: wcPlanMonthly(months),
+      badge: i === after - 1 ? ('Final' as const) : null,
+    })),
+  ];
   return (
     <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
       <Pressable style={styles.wcPickerScrim} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close schedule" />
@@ -2006,7 +2015,7 @@ function WcFullScheduleSheet({ months, onClose, onBack, onConfirm }: { months: n
         )}
         <View style={{ gap: 2, marginBottom: 6 }}>
           <Text style={styles.wcDetailsStrong}>{months} monthly payments</Text>
-          <Text style={styles.wcDetailsDim}>First payment today, then {months - 1} {wcPaymentsWord(months - 1)} monthly</Text>
+          <Text style={styles.wcDetailsDim}>{wcIsShortPlusPlan(months) ? 'Down payment today' : 'First payment today'}, then {wcInstallmentsAfterToday(months)} {wcPaymentsWord(wcInstallmentsAfterToday(months))} monthly</Text>
         </View>
         <View testID="wc-schedule-rows" style={{ gap: 0 }}>
           {rows.map((r, i) => (
@@ -2064,7 +2073,11 @@ function WcWhyTodaySheet({ months, onClose }: { months: number; onClose: () => v
           </View>
           <View style={styles.wcWhyRow}>
             <View style={styles.wcWhyDot} />
-            <Text style={styles.wcWhyText}>Your first installment of <Riyal size={10} color={muted} /> {wcMoney(wcPlanMonthly(months))} is added to the down payment today.</Text>
+            {wcIsShortPlusPlan(months) ? (
+              <Text style={styles.wcWhyText}>Your {months} installments of <Riyal size={10} color={muted} /> {wcMoney(wcPlanMonthly(months))} follow monthly, starting 1 July.</Text>
+            ) : (
+              <Text style={styles.wcWhyText}>Your first installment of <Riyal size={10} color={muted} /> {wcMoney(wcPlanMonthly(months))} is added to the down payment today.</Text>
+            )}
           </View>
           <View style={styles.wcWhyRow}>
             <View style={styles.wcWhyDot} />
@@ -2290,8 +2303,8 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
                     <Image source={figmaImageSource('wcInfoCircle')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14, marginLeft: 6 }} />
                   </Pressable>
                 </View>
-                <Text style={[styles.wcPayThen, { marginTop: 4 }]}>Then <Text style={styles.wcPayThenStrong}>{months - 1}</Text> {wcPaymentsWord(months - 1)} of <Riyal size={11} color={muted} /> <Text style={styles.wcPayThenStrong}>{wcMoney(wcPlanMonthly(months))}</Text>/mo</Text>
-                <Text style={styles.wcPayStartLine}>{months === 2 ? 'Due on Jul 1 2026' : `Starting from Jul 1 to ${MONTH_NAMES[(6 + months - 2) % 12].slice(0, 3)} 1 2026`}</Text>
+                <Text style={[styles.wcPayThen, { marginTop: 4 }]}>Then <Text style={styles.wcPayThenStrong}>{wcInstallmentsAfterToday(months)}</Text> {wcPaymentsWord(wcInstallmentsAfterToday(months))} of <Riyal size={11} color={muted} /> <Text style={styles.wcPayThenStrong}>{wcMoney(wcPlanMonthly(months))}</Text>/mo</Text>
+                <Text style={styles.wcPayStartLine}>{wcInstallmentsAfterToday(months) === 1 ? 'Due on Jul 1 2026' : `Starting from Jul 1 to ${MONTH_NAMES[(6 + wcInstallmentsAfterToday(months) - 1) % 12].slice(0, 3)} 1 2026`}</Text>
               </View>
             </FadeSwap>
             <View style={styles.wcPayActionsRow}>
@@ -5502,7 +5515,7 @@ const styles = StyleSheet.create({
   wcPlanListTitle: { fontSize: 22, lineHeight: 28, fontWeight: '700', color: text, letterSpacing: 0.3 },
   wcPlanRow: { backgroundColor: surface, borderRadius: 16, borderWidth: 1, borderColor: 'transparent', paddingHorizontal: 16, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', minHeight: 66 },
   wcPlanRowSelected: { backgroundColor: '#f0fdf4', borderColor: '#23a107', borderRadius: 24 },
-  wcPlanRowLabel: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: text, letterSpacing: -0.24 },
+  wcPlanRowLabel: { fontSize: 17, lineHeight: 22, fontWeight: '600', color: text, letterSpacing: -0.3 },
   wcPlanRowNote: { fontSize: 12, lineHeight: 16, color: muted },
   wcPlanRowFeeLine: { flexDirection: 'row', alignItems: 'center' },
   wcPlanDiscountChip: { flexDirection: 'row', alignItems: 'center', gap: 5, backgroundColor: '#e5ffed', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
