@@ -4902,7 +4902,7 @@ const styles = StyleSheet.create({
   xOfferRadio: { width: 22, height: 22, borderRadius: 999, borderWidth: 1.5, borderColor: '#c3ccd6', alignItems: 'center', justifyContent: 'center' },
   xOfferRadioOn: { borderColor: '#1c8a2b', borderWidth: 2, backgroundColor: '#fff' },
   xOfferRadioDot: { width: 11, height: 11, borderRadius: 999, backgroundColor: '#1c8a2b' },
-  xOfferTitle: { fontSize: 18, lineHeight: 24, fontWeight: '800', color: '#15191e', marginTop: 2 },
+  xOfferTitle: { fontSize: 16, lineHeight: 22, fontWeight: '800', letterSpacing: -0.2, color: '#15191e', marginTop: 2 },
   xOfferBody: { fontSize: 15, lineHeight: 21, color: '#2c3a47' },
   xOfferBodyBold: { fontWeight: '700' },
   xOfferLink: { fontSize: 15, lineHeight: 21, fontWeight: '600', color: '#1467b3', marginTop: 2 },
