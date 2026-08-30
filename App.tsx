@@ -274,6 +274,9 @@ const figmaAssets = {
   wcSaleTagGreen: '/figma/wcSaleTagGreen.svg',
   // Consent checkbox checkmark (Figma 4406:63820 — Terms and conditions).
   wcCheckboxCheck: '/figma/wcCheckboxCheck.svg',
+  // Lucky-draw banner art (Figma 4768:17326).
+  wcRaffleBg: '/figma/wcRaffleBg.png',
+  wcRaffleBox: '/figma/wcRaffleBox.png',
   // Black Apple Pay CTA pieces (Figma 3477:75321 — Apple pay).
   wcAppleLogoWhite: '/figma/wcAppleLogoWhite.svg',
   wcRiyalWhite: '/figma/wcRiyalWhite.svg',
@@ -2332,12 +2335,13 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               <Image source={figmaImageSource('wcMada')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 28, height: 10 }} />
             </View>
             <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
-              <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleIcon} />
-              <View style={{ flex: 1, gap: 3 }}>
-                <Text style={styles.wcRaffleTitle}>This one could be on us</Text>
-                <Text style={styles.wcRaffleBody}>
-                  Every purchase enters the draw. If you're our lucky winner, Tasheel covers every payment you have left.
-                </Text>
+              <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleBgImage}>
+                <View style={styles.wcRaffleScrim} />
+              </ImageBackground>
+              <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleArt} />
+              <View style={styles.wcRaffleCopy}>
+                <Text style={styles.wcRaffleTitle}>Your next payments could be on us.</Text>
+                <Text style={styles.wcRaffleBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
               </View>
             </View>
             {needsMurabaha ? (
@@ -4789,10 +4793,13 @@ const styles = StyleSheet.create({
   wcPayRadioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: text },
   wcNetworksRow: { flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 24 },
   wcNetworkBadge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 4 },
-  wcRaffleBanner: { marginTop: 18, borderRadius: 16, backgroundColor: '#e5ffed', paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
-  wcRaffleIcon: { width: 16, height: 16, marginTop: 1 },
-  wcRaffleTitle: { fontSize: 14, lineHeight: 18, fontWeight: '700', letterSpacing: -0.08, color: greenMid },
-  wcRaffleBody: { fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted },
+  wcRaffleBanner: { marginTop: 18, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },
+  wcRaffleBgImage: { borderRadius: 16 },
+  wcRaffleScrim: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)' },
+  wcRaffleArt: { position: 'absolute', right: -45, top: -14, width: 131, height: 126 , transform: [{ scaleX: -1 }] },
+  wcRaffleCopy: { width: 296, padding: 16, gap: 8 },
+  wcRaffleTitle: { fontSize: 14, lineHeight: 16, fontWeight: '700', letterSpacing: -0.2, color: '#ffffff' },
+  wcRaffleBody: { width: 246, fontSize: 11, lineHeight: 14, letterSpacing: 0.06, color: '#ffffff', opacity: 0.8 },
   wcAgreementEntry: { minHeight: 70, marginTop: 18, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: borderSubtle, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   wcAgreementEntryTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: text },
   wcAgreementEntrySub: { fontSize: 12, lineHeight: 16, color: muted },
