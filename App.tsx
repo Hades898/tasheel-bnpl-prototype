@@ -1832,19 +1832,13 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
                         <Text style={styles.wcBenefitHead}>0% interest. 0% fees.</Text>
                       </View>
-                      <View style={styles.wcBenefitBodyRow}>
+                      <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
-                          <>
-                            <Riyal size={11} color={muted} />
-                            <Text style={styles.wcBenefitBody}>{wcMoney(wcDownFor(months))} down payment, then</Text>
-                          </>
+                          <><Riyal size={11} color={muted} /> {wcMoney(wcDownFor(months))} down payment, then <Riyal size={11} color={muted} /> {wcMoney(wcPlanMonthly(months))} per month for {months} months</>
                         ) : (
-                          <Text style={styles.wcBenefitBody}>Pay</Text>
+                          <>Pay <Riyal size={11} color={muted} /> {wcMoney(wcPlanMonthly(months))} per month for {months} months</>
                         )}
-                        <Riyal size={11} color={muted} />
-                        <Text style={styles.wcBenefitBody}>{wcMoney(wcPlanMonthly(months))}</Text>
-                        <Text style={styles.wcBenefitBody}>per month for {months} months</Text>
-                      </View>
+                      </Text>
                     </>
                   )}
                 </View>
