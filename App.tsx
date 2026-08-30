@@ -741,7 +741,7 @@ function DemoGate({ startDemo }: { startDemo: (flow: WcFlow, product: WcProduct)
                 <View style={{ gap: 14 }}>
                   <Pressable testID="gate-existing" onPress={() => startDemo('existing', product)} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardPrimary, pressed && { opacity: 0.9 }]}>
                     <Text style={styles.gateCardPrimaryTitle}>Existing user demo</Text>
-                    <Text style={styles.gateCardPrimarySub}>Returning customer: mobile, OTP, quick call, plan and payment.</Text>
+                    <Text style={styles.gateCardPrimarySub}>Returning customer: plan, mobile, OTP, quick call and payment.</Text>
                     <Text style={styles.gateCardPrimaryCta}>Start →</Text>
                   </Pressable>
                   <Pressable testID="gate-new-user" onPress={() => startDemo('new', product)} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardSecondary, pressed && { opacity: 0.9 }]}>
@@ -818,7 +818,7 @@ function XPayRow({ label, icon, selected, onPress }: { label: string; icon: Figm
 // Merchant entry — extra.com product page mimic (SMEG MP00015644), with Tasheel
 // replacing Baseeta in the "Shop now, pay later!" section. Real product image/price
 // from extra.com; tabby/tamara figures are the live site's values for this product.
-function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer: { title: string; body: string; planMax: number; planMin: number; aria: string } }) {
+function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer: { title: string; body: React.ReactNode; planMax: number; planMin: number; aria: string } }) {
   const [added, setAdded] = useState(false);
   const [checkoutMethod, setCheckoutMethod] = useState<'card' | 'apple' | 'tasheel'>('tasheel');
   const [howOpen, setHowOpen] = useState(false);
@@ -875,7 +875,7 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
               testID="wc-tasheel-offer"
               accessibilityRole="button"
               accessibilityLabel={offer.aria}
-              onPress={() => { setCheckoutMethod('tasheel'); setRoute('wcMobile'); }}
+              onPress={() => { setCheckoutMethod('tasheel'); setRoute('wcTenure'); }}
               style={[styles.xOfferCard, checkoutMethod === 'tasheel' && styles.xOfferCardSelected]}
             >
               <View style={styles.xOfferTopRow}>
@@ -918,7 +918,7 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
                 <Text style={styles.xRivalLink}>Learn more</Text>
               </View>
             </View>
-            <Pressable testID="wc-cart-continue" style={styles.xCartContinue} onPress={() => checkoutMethod === 'tasheel' && setRoute('wcMobile')} accessibilityRole="button" accessibilityLabel="Continue with Tasheel Finance">
+            <Pressable testID="wc-cart-continue" style={styles.xCartContinue} onPress={() => checkoutMethod === 'tasheel' && setRoute('wcTenure')} accessibilityRole="button" accessibilityLabel="Continue with Tasheel Finance">
               <Text style={styles.xCartContinueText}>{checkoutMethod === 'tasheel' ? 'Continue with Tasheel Finance' : 'Select Tasheel Finance to continue'}</Text>
             </Pressable>
           </ScrollView>
@@ -1501,7 +1501,7 @@ let wcActiveProduct: WcProduct = 'bnpl';
 let wcActiveTenures: readonly number[] = [2, 3, 4];
 const configureWcOffer = (product: WcProduct, flow: WcFlow) => {
   wcActiveProduct = product;
-  wcActiveTenures = product === 'bnpl' ? [2, 3, 4] : [2, 3, 4, 6, 9, 12, 24, 36];
+  wcActiveTenures = product === 'bnpl' ? (flow === 'new' ? [2, 3, 4, 6] : [2, 3, 4]) : [2, 3, 4, 6, 9, 12, 24, 36];
 };
 // 2 and 3 months are free; 4 months and longer carry a 1% Murabaha fee on the
 // financed principal. Every tenure has a rate, so no plan is ever unselectable.
@@ -1598,7 +1598,7 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
   }, [phase, pulse, swap]);
   useEffect(() => {
     if (phase !== 'verified') return;
-    const timer = setTimeout(() => setRoute('wcTenure'), 2000);
+    const timer = setTimeout(() => setRoute('wcPayment'), 2000);
     return () => clearTimeout(timer);
   }, [phase, setRoute]);
   // Figma 3299:37747 — quick call with the standard onboarding header, full-bleed
@@ -1640,7 +1640,7 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 // Figma 4406:63560 — Choose plan as a list. Every tenure is visible at once;
 // tapping a row selects it and raises the benefits sheet (Confirm / View details).
 // Amounts come from the live pricing engine, not the Figma placeholder copy.
-function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => void; months: number; setMonths: (m: number) => void }) {
+function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: RouteKey) => void; months: number; setMonths: (m: number) => void; nextRoute: RouteKey }) {
   const [sheet, setSheet] = useState<null | 'details' | 'schedule' | 'cart' | 'fee'>(null);
   const [picked, setPicked] = useState(false);
   const [leavePromptOpen, setLeavePromptOpen] = useState(false);
@@ -1846,7 +1846,7 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                   <Pressable testID="wc-plan-details" style={[styles.wcGreyCta, { flex: 1, width: undefined }]} onPress={() => setSheet('details')} accessibilityRole="button">
                     <Text style={styles.wcGreyCtaText}>View details</Text>
                   </Pressable>
-                  <Pressable testID="wc-plan-continue" style={[styles.wcGreenCta, { flex: 1 }]} onPress={() => setRoute('wcPayment')} accessibilityRole="button">
+                  <Pressable testID="wc-plan-continue" style={[styles.wcGreenCta, { flex: 1 }]} onPress={() => setRoute(nextRoute)} accessibilityRole="button">
                     <Text style={styles.wcGreenCtaText}>Confirm</Text>
                   </Pressable>
                 </View>
@@ -1854,8 +1854,8 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
             </View>
           </ViewportLayer>
         ) : null}
-        {sheet === 'details' ? <WcPlanDetailsSheet months={months} onClose={() => setSheet(null)} onViewSchedule={() => setSheet('schedule')} onContinue={() => setRoute('wcPayment')} /> : null}
-        {sheet === 'schedule' ? <WcFullScheduleSheet months={months} onClose={() => setSheet(null)} onBack={() => setSheet('details')} onConfirm={() => setRoute('wcPayment')} /> : null}
+        {sheet === 'details' ? <WcPlanDetailsSheet months={months} onClose={() => setSheet(null)} onViewSchedule={() => setSheet('schedule')} onContinue={() => setRoute(nextRoute)} /> : null}
+        {sheet === 'schedule' ? <WcFullScheduleSheet months={months} onClose={() => setSheet(null)} onBack={() => setSheet('details')} onConfirm={() => setRoute(nextRoute)} /> : null}
         {sheet === 'cart' ? <WcCartSheet onClose={() => setSheet(null)} months={months} picked={picked} /> : null}
         {sheet === 'fee' ? <WcFourMonthFeeSheet onClose={() => setSheet(null)} /> : null}
         <View style={styles.wcStatusOverlay} pointerEvents="none"><StatusStrip pointerEvents="none" /></View>
@@ -4462,6 +4462,7 @@ export default function App() {
   const [wcPhone, setWcPhone] = useState('581723467');
   const [wcMonths, setWcMonths] = useState(3);
   const [wcFlow, setWcFlow] = useState<WcFlow>('existing');
+  const [wcVerified, setWcVerified] = useState(false);
   const [wcProduct, setWcProduct] = useState<WcProduct>('bnpl');
   configureWcOffer(wcProduct, wcFlow);
   const [payCardLast4, setPayCardLast4] = useState('4521');
@@ -4479,6 +4480,9 @@ export default function App() {
   }, []);
 
   const setRoute = (r: RouteKey) => {
+    // Reaching payment review means mobile/OTP (and any onboarding) is done;
+    // plan changes afterwards go straight back to payment.
+    if (r === 'wcPayment') setWcVerified(true);
     setRouteState(r);
     const map: Record<RouteKey, string> = {
       checkout: '/checkout', appHome: '/checkout/app-home', detail: '/checkout/detail', insights: '/checkout/insights', insightsCategory: '/checkout/insights/category', insightsEmpty: '/checkout/insights/empty', purchases: '/checkout/purchases', dues: '/checkout/dues', nextUp: '/checkout/next-up', paymentMethod: '/checkout/payment-method', paymentSelected: '/checkout/payment-method/selected', addCard: '/checkout/payment-method/add-card', cardAdded: '/checkout/payment-method/added', otp: '/checkout/otp', processing: '/checkout/processing', insufficient: '/checkout/insufficient', declined: '/checkout/declined', success: '/checkout/success',
@@ -4490,35 +4494,37 @@ export default function App() {
   const startDemo = (flow: WcFlow, product: WcProduct) => {
     setWcFlow(flow);
     setWcProduct(product);
+    setWcVerified(false);
     configureWcOffer(product, flow);
     setWcMonths(product === 'bnpl' ? 3 : 4);
     setRoute('checkout');
   };
-  const bnplMax = 4;
+  const bnplMax = wcFlow === 'new' ? 6 : 4;
   const bnplMonthly = wcMoney(Math.round((WC_BNPL_CART_TOTAL / bnplMax) * 100) / 100);
+  const ob = (value: React.ReactNode) => <Text style={styles.xOfferBodyBold}>{value}</Text>;
   const tasheelOffer = wcProduct === 'bnpl'
     ? {
-        title: 'Split the cost. Pay nothing extra.',
+        title: wcFlow === 'new' ? 'Split your purchase. Pay nothing extra.' : 'Split the cost. Pay nothing extra.',
         body: wcFlow === 'new'
-          ? `Pay from ${bnplMonthly} a month over up to ${bnplMax} months — 0% interest, 0 fees.`
-          : `Pay ${bnplMonthly} a month for ${bnplMax} months — 0% interest, 0 fees.`,
+          ? <>Pay from {ob(bnplMonthly)} a month over up to {ob(`${bnplMax} months`)} — {ob('0%')} interest, {ob('0')} fees.</>
+          : <>Pay {ob(bnplMonthly)} a month for {ob(`${bnplMax} months`)} — {ob('0%')} interest, {ob('0')} fees.</>,
         planMax: bnplMax,
         planMin: 2,
-        aria: `Split the cost with Tasheel and pay nothing extra: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
+        aria: `Split your purchase with Tasheel and pay nothing extra: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
       }
     : wcFlow === 'existing'
     ? {
         title: 'Win 100% of it back.',
-        body: `Transact today and get a chance to get back 100% of your transaction value.`,
+        body: <>Transact today and get a chance to get back {ob('100%')} of your transaction value.</>,
         planMax: 36,
-        planMin: 4,
+        planMin: 2,
         aria: `Continue with Tasheel Finance: transact today and get a chance to get back 100 percent of your transaction value`,
       }
     : {
         title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
-        body: `Save up to 10% off your cart and pay over up to 36 months.`,
+        body: <>Save up to {ob('10%')} off your cart and pay over up to {ob('36 months')}.</>,
         planMax: 36,
-        planMin: 4,
+        planMin: 2,
         aria: `Continue with Tasheel Finance: save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}, up to 10 percent off your cart, pay over up to 36 months`,
       };
   if (route === 'gate') return <DemoGate startDemo={startDemo} />;
@@ -4527,7 +4533,7 @@ export default function App() {
   if (route === 'wcIdentity') return <WcIdentity setRoute={setRoute} />;
   if (route === 'wcNafath') return <WcNafath setRoute={setRoute} />;
   if (route === 'wcQuickCall') return <WcQuickCall setRoute={setRoute} />;
-  if (route === 'wcTenure') return <WcTenure setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} />;
+  if (route === 'wcTenure') return <WcTenure setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} nextRoute={wcVerified ? 'wcPayment' : 'wcMobile'} />;
   if (route === 'wcPayment') return <WcPayment setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} />;
   if (route === 'wcProcessing') return <WcProcessing setRoute={setRoute} />;
   if (route === 'wcSuccess') return <WcSuccess months={wcMonths} setRoute={setRoute} />;
@@ -4877,6 +4883,7 @@ const styles = StyleSheet.create({
   xOfferRadioDot: { width: 11, height: 11, borderRadius: 999, backgroundColor: '#1c8a2b' },
   xOfferTitle: { fontSize: 18, lineHeight: 24, fontWeight: '800', color: '#15191e', marginTop: 2 },
   xOfferBody: { fontSize: 15, lineHeight: 21, color: '#2c3a47' },
+  xOfferBodyBold: { fontWeight: '700' },
   xOfferLink: { fontSize: 15, lineHeight: 21, fontWeight: '600', color: '#1467b3', marginTop: 2 },
   xOfferSteps: { gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#cfe6c9' },
   xOfferStepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
