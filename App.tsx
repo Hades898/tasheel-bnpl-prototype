@@ -2215,7 +2215,10 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
   const [agreementAccepted, setAgreementAccepted] = useState(false);
   const [sheet, setSheet] = useState<null | 'details' | 'schedule' | 'why' | 'leave' | 'murabaha'>(null);
   const today = wcPlanToday(months);
-  const canPay = method !== null && agreementAccepted;
+  // The Murabaha agreement only applies to BNPL Plus financing; plain BNPL
+  // (0 fees, 0 interest) has no Murabaha contract to accept.
+  const needsMurabaha = wcActiveProduct === 'plus';
+  const canPay = method !== null && (!needsMurabaha || agreementAccepted);
   const payCta = (
     <View style={styles.wcStickyCtaBar} pointerEvents="auto">
       {method === 'apple' ? (
@@ -2302,6 +2305,7 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               <View style={styles.wcNetworkBadge}><Image source={figmaImageSource('wcApplePay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 20, height: 20 }} /></View>
               <Image source={figmaImageSource('wcMada')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 28, height: 10 }} />
             </View>
+            {needsMurabaha ? (
             <Pressable testID="wc-murabaha-entry" style={styles.wcAgreementEntry} onPress={() => setSheet('murabaha')} accessibilityRole="button" accessibilityLabel="Review and accept Murabaha agreement">
               <View style={[styles.wcAgreementCheckbox, agreementAccepted && styles.wcAgreementCheckboxSelected]}>{agreementAccepted ? <Text style={styles.wcAgreementCheck}>✓</Text> : null}</View>
               <View style={{ flex: 1, gap: 2 }}>
@@ -2310,6 +2314,7 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               </View>
               <Text style={styles.wcMurabahaChevron}>›</Text>
             </Pressable>
+            ) : null}
           </View>
           <View style={styles.wcObBottom}>
             {SHOW_FAKE_CHROME ? payCta : null}
