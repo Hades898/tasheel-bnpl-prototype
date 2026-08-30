@@ -1501,7 +1501,7 @@ let wcActiveProduct: WcProduct = 'bnpl';
 let wcActiveTenures: readonly number[] = [2, 3, 4];
 const configureWcOffer = (product: WcProduct, flow: WcFlow) => {
   wcActiveProduct = product;
-  wcActiveTenures = product === 'bnpl' ? (flow === 'new' ? [2, 3, 4, 6] : [2, 3, 4]) : [4, 6, 9, 12, 24, 36];
+  wcActiveTenures = product === 'bnpl' ? [2, 3, 4] : [2, 3, 4, 6, 9, 12, 24, 36];
 };
 // 2 and 3 months are free; 4 months and longer carry a 1% Murabaha fee on the
 // financed principal. Every tenure has a rate, so no plan is ever unselectable.
@@ -1528,11 +1528,18 @@ const WC_PLUS_DISCOUNT_RATES: Record<number, number> = { 4: 0.02, 6: 0.02, 9: 0.
 const WC_PLUS_MAX_DISCOUNT_RATE = 0.1;
 const wcCartTotalNow = () => (wcActiveProduct === 'bnpl' ? WC_BNPL_CART_TOTAL : WC_CART_TOTAL);
 const wcMaxDiscountPctNow = () => (wcActiveProduct === 'bnpl' ? 2 : 10);
-const wcDiscountRateFor = (months: number) => WC_PLUS_DISCOUNT_RATES[months] ?? 0;
+const wcDiscountRateFor = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : WC_PLUS_DISCOUNT_RATES[months] ?? 0);
 const wcDiscountPctFor = (months: number) => Math.round(wcDiscountRateFor(months) * 100);
 const wcDiscountAmountFor = (months: number) => Math.round(wcCartTotalNow() * wcDiscountRateFor(months) * 100) / 100;
 const wcOrderTotalFor = (months: number) => Math.round((wcCartTotalNow() - wcDiscountAmountFor(months)) * 100) / 100;
-const wcPrincipalFor = (months: number) => (wcActiveProduct === 'bnpl' ? wcOrderTotalFor(months) : Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT));
+const wcPrincipalFor = (months: number) => {
+  if (wcActiveProduct === 'bnpl') return wcOrderTotalFor(months);
+  // Plus short plans (2-3 months) invert the split: the customer pays the
+  // available-limit amount up front and finances only the excess in equal
+  // installments (7,000 cart → 5,000 down + 2×1,000 or 3×666.67).
+  if (months <= 3) return Math.max(0, wcOrderTotalFor(months) - WC_AVAILABLE_LIMIT);
+  return Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT);
+};
 const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(months) - wcPrincipalFor(months)) * 100) / 100);
 const wcPlanFee = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : Math.round(wcPrincipalFor(months) * wcPlanFeeRate(months) * 100) / 100);
 const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months)) * 100) / 100;
@@ -1738,7 +1745,12 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                   >
                     <View style={{ gap: 6, flexShrink: 1 }}>
                       <Text style={styles.wcPlanRowLabel}>{m} Payments</Text>
-                      {planFee === 0 ? (
+                      {planFee === 0 && wcDownFor(m) > 0 ? (
+                        <View style={styles.wcPlanRowFeeLine}>
+                          <Riyal size={11} color={muted} />
+                          <Text style={styles.wcPlanRowNote}>{wcMoney(wcDownFor(m))} down payment</Text>
+                        </View>
+                      ) : planFee === 0 ? (
                         <Text style={styles.wcPlanRowNote}>No interest. No fees</Text>
                       ) : (
                         <View style={styles.wcPlanRowFeeLine}>
@@ -1817,7 +1829,14 @@ function WcTenure({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) => 
                         <Text style={styles.wcBenefitHead}>0% interest. 0% fees.</Text>
                       </View>
                       <View style={styles.wcBenefitBodyRow}>
-                        <Text style={styles.wcBenefitBody}>Pay</Text>
+                        {wcDownFor(months) > 0 ? (
+                          <>
+                            <Riyal size={11} color={muted} />
+                            <Text style={styles.wcBenefitBody}>{wcMoney(wcDownFor(months))} down, then</Text>
+                          </>
+                        ) : (
+                          <Text style={styles.wcBenefitBody}>Pay</Text>
+                        )}
                         <Riyal size={11} color={muted} />
                         <Text style={styles.wcBenefitBody}>{wcMoney(wcPlanMonthly(months))}</Text>
                         <Text style={styles.wcBenefitBody}>per month for {months} months</Text>
@@ -2107,7 +2126,7 @@ function WcCartSheet({ onClose, months, picked }: { onClose: () => void; months?
             <Text style={styles.wcDetailsLabel}>Total</Text>
             <Money amount={wcMoney(discount > 0 && months ? wcOrderTotalFor(months) : wcCartTotalNow())} size={17} weight="700" />
           </View>
-          {!(discount > 0) ? (
+          {wcHasDiscount() && !(discount > 0) ? (
             <Text style={styles.wcDetailsDim}>Pick a plan to apply your discount — save up to {wcMaxDiscountPctNow()}%.</Text>
           ) : null}
         </View>
@@ -4468,7 +4487,7 @@ export default function App() {
     setWcMonths(product === 'bnpl' ? 3 : 4);
     setRoute('checkout');
   };
-  const bnplMax = wcFlow === 'new' ? 6 : 4;
+  const bnplMax = 4;
   const bnplMonthly = wcMoney(Math.round((WC_BNPL_CART_TOTAL / bnplMax) * 100) / 100);
   const tasheelOffer = wcProduct === 'bnpl'
     ? {
