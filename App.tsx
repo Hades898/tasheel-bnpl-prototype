@@ -2334,9 +2334,9 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
             <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
               <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleIcon} />
               <View style={{ flex: 1, gap: 3 }}>
-                <Text style={styles.wcRaffleTitle}>Win your plan back</Text>
+                <Text style={styles.wcRaffleTitle}>This one could be on us</Text>
                 <Text style={styles.wcRaffleBody}>
-                  Complete this purchase to enter the draw. Win and Tasheel pays your remaining {wcInstallmentsAfterToday(months)} {wcPaymentsWord(wcInstallmentsAfterToday(months))} — <Riyal size={11} color={muted} /> {wcMoney(Math.round(wcPlanMonthly(months) * wcInstallmentsAfterToday(months) * 100) / 100)}.
+                  Every purchase enters the draw. If you're our lucky winner, Tasheel covers every payment you have left.
                 </Text>
               </View>
             </View>
