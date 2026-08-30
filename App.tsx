@@ -741,7 +741,7 @@ function DemoGate({ startDemo }: { startDemo: (flow: WcFlow, product: WcProduct)
                 <View style={{ gap: 14 }}>
                   <Pressable testID="gate-existing" onPress={() => startDemo('existing', product)} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardPrimary, pressed && { opacity: 0.9 }]}>
                     <Text style={styles.gateCardPrimaryTitle}>Existing user demo</Text>
-                    <Text style={styles.gateCardPrimarySub}>Returning customer: plan, mobile, OTP, quick call and payment.</Text>
+                    <Text style={styles.gateCardPrimarySub}>Returning customer: mobile, OTP, plan, quick call and payment.</Text>
                     <Text style={styles.gateCardPrimaryCta}>Start →</Text>
                   </Pressable>
                   <Pressable testID="gate-new-user" onPress={() => startDemo('new', product)} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardSecondary, pressed && { opacity: 0.9 }]}>
@@ -875,7 +875,7 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
               testID="wc-tasheel-offer"
               accessibilityRole="button"
               accessibilityLabel={offer.aria}
-              onPress={() => { setCheckoutMethod('tasheel'); setRoute('wcTenure'); }}
+              onPress={() => { setCheckoutMethod('tasheel'); setRoute('wcMobile'); }}
               style={[styles.xOfferCard, checkoutMethod === 'tasheel' && styles.xOfferCardSelected]}
             >
               <View style={styles.xOfferTopRow}>
@@ -918,7 +918,7 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
                 <Text style={styles.xRivalLink}>Learn more</Text>
               </View>
             </View>
-            <Pressable testID="wc-cart-continue" style={styles.xCartContinue} onPress={() => checkoutMethod === 'tasheel' && setRoute('wcTenure')} accessibilityRole="button" accessibilityLabel="Continue with Tasheel Finance">
+            <Pressable testID="wc-cart-continue" style={styles.xCartContinue} onPress={() => checkoutMethod === 'tasheel' && setRoute('wcMobile')} accessibilityRole="button" accessibilityLabel="Continue with Tasheel Finance">
               <Text style={styles.xCartContinueText}>{checkoutMethod === 'tasheel' ? 'Continue with Tasheel Finance' : 'Select Tasheel Finance to continue'}</Text>
             </Pressable>
           </ScrollView>
@@ -1436,7 +1436,7 @@ function WcNafath({ setRoute }: { setRoute: (r: RouteKey) => void }) {
       Animated.timing(pulse, { toValue: 1, duration: 520, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
     ]));
     loop.start();
-    const timer = setTimeout(() => setRoute('wcQuickCall'), 2600);
+    const timer = setTimeout(() => setRoute('wcTenure'), 2600);
     return () => { loop.stop(); clearTimeout(timer); };
   }, [waiting, pulse, setRoute]);
   return (
@@ -1786,7 +1786,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
             </View>
           </Animated.ScrollView>
           <View style={styles.wcObBottom}>
-            <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcQuickCall')} />
+            <SafariCompactBar url="extrastores.com" onBack={() => setRoute('wcOtp')} />
           </View>
         </ScreenFade>
         {/* Soft fade over the list's bottom edge (Figma frames fade rows out instead of hard-clipping them). */}
@@ -4502,38 +4502,37 @@ export default function App() {
   const bnplMax = wcFlow === 'new' ? 6 : 4;
   const bnplMonthly = wcMoney(Math.round((WC_BNPL_CART_TOTAL / bnplMax) * 100) / 100);
   const ob = (value: React.ReactNode) => <Text style={styles.xOfferBodyBold}>{value}</Text>;
+  // Titles and bodies are kept short enough to hold one line on a 390pt phone.
   const tasheelOffer = wcProduct === 'bnpl'
     ? {
-        title: wcFlow === 'new' ? 'Split your purchase. Pay nothing extra.' : 'Split the cost. Pay nothing extra.',
-        body: wcFlow === 'new'
-          ? <>Pay from {ob(bnplMonthly)} a month over up to {ob(`${bnplMax} months`)} — {ob('0%')} interest, {ob('0')} fees.</>
-          : <>Pay {ob(bnplMonthly)} a month for {ob(`${bnplMax} months`)} — {ob('0%')} interest, {ob('0')} fees.</>,
+        title: 'Split your purchase.',
+        body: <>{ob(`${bnplMonthly}/mo`)} for {ob(`${bnplMax} months`)}. {ob('0%')} interest, no fees.</>,
         planMax: bnplMax,
         planMin: 2,
-        aria: `Split your purchase with Tasheel and pay nothing extra: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
+        aria: `Split your purchase with Tasheel: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest and 0 fees`,
       }
     : wcFlow === 'existing'
     ? {
         title: 'Win 100% of it back.',
-        body: <>Transact today and get a chance to get back {ob('100%')} of your transaction value.</>,
+        body: <>Buy today for a chance to win back {ob('100%')}.</>,
         planMax: 36,
         planMin: 2,
-        aria: `Continue with Tasheel Finance: transact today and get a chance to get back 100 percent of your transaction value`,
+        aria: `Continue with Tasheel Finance: buy today for a chance to win back 100 percent of your transaction value`,
       }
     : {
-        title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
-        body: <>Save up to {ob('10%')} off your cart and pay over up to {ob('36 months')}.</>,
+        title: `Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
+        body: <>Up to {ob('10%')} off, over up to {ob('36 months')}.</>,
         planMax: 36,
         planMin: 2,
         aria: `Continue with Tasheel Finance: save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}, up to 10 percent off your cart, pay over up to 36 months`,
       };
   if (route === 'gate') return <DemoGate startDemo={startDemo} />;
   if (route === 'wcMobile') return <WcMobile setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} requireConsent={wcFlow === 'new'} />;
-  if (route === 'wcOtp') return <WcOtp setRoute={setRoute} phone={wcPhone} nextRoute={wcFlow === 'new' ? 'wcIdentity' : 'wcQuickCall'} />;
+  if (route === 'wcOtp') return <WcOtp setRoute={setRoute} phone={wcPhone} nextRoute={wcFlow === 'new' ? 'wcIdentity' : 'wcTenure'} />;
   if (route === 'wcIdentity') return <WcIdentity setRoute={setRoute} />;
   if (route === 'wcNafath') return <WcNafath setRoute={setRoute} />;
   if (route === 'wcQuickCall') return <WcQuickCall setRoute={setRoute} />;
-  if (route === 'wcTenure') return <WcTenure setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} nextRoute={wcVerified ? 'wcPayment' : 'wcMobile'} />;
+  if (route === 'wcTenure') return <WcTenure setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} nextRoute={wcVerified ? 'wcPayment' : 'wcQuickCall'} />;
   if (route === 'wcPayment') return <WcPayment setRoute={setRoute} months={wcMonths} setMonths={setWcMonths} />;
   if (route === 'wcProcessing') return <WcProcessing setRoute={setRoute} />;
   if (route === 'wcSuccess') return <WcSuccess months={wcMonths} setRoute={setRoute} />;
@@ -4882,7 +4881,7 @@ const styles = StyleSheet.create({
   xOfferRadioOn: { borderColor: '#1c8a2b', borderWidth: 2, backgroundColor: '#fff' },
   xOfferRadioDot: { width: 11, height: 11, borderRadius: 999, backgroundColor: '#1c8a2b' },
   xOfferTitle: { fontSize: 18, lineHeight: 24, fontWeight: '800', color: '#15191e', marginTop: 2 },
-  xOfferBody: { fontSize: 15, lineHeight: 21, color: '#2c3a47' },
+  xOfferBody: { fontSize: 14, lineHeight: 20, color: '#2c3a47' },
   xOfferBodyBold: { fontWeight: '700' },
   xOfferLink: { fontSize: 15, lineHeight: 21, fontWeight: '600', color: '#1467b3', marginTop: 2 },
   xOfferSteps: { gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#cfe6c9' },
