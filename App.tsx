@@ -2331,6 +2331,15 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               <View style={styles.wcNetworkBadge}><Image source={figmaImageSource('wcApplePay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 20, height: 20 }} /></View>
               <Image source={figmaImageSource('wcMada')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 28, height: 10 }} />
             </View>
+            <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
+              <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleIcon} />
+              <View style={{ flex: 1, gap: 3 }}>
+                <Text style={styles.wcRaffleTitle}>Win your plan back</Text>
+                <Text style={styles.wcRaffleBody}>
+                  Complete this purchase to enter the draw. Win and Tasheel pays your remaining {wcInstallmentsAfterToday(months)} {wcPaymentsWord(wcInstallmentsAfterToday(months))} — <Riyal size={11} color={muted} /> {wcMoney(Math.round(wcPlanMonthly(months) * wcInstallmentsAfterToday(months) * 100) / 100)}.
+                </Text>
+              </View>
+            </View>
             {needsMurabaha ? (
             <Pressable testID="wc-murabaha-entry" style={styles.wcAgreementEntry} onPress={() => setSheet('murabaha')} accessibilityRole="button" accessibilityLabel="Review and accept Murabaha agreement">
               <View style={[styles.wcAgreementCheckbox, agreementAccepted && styles.wcAgreementCheckboxSelected]}>{agreementAccepted ? <Text style={styles.wcAgreementCheck}>✓</Text> : null}</View>
@@ -4780,6 +4789,10 @@ const styles = StyleSheet.create({
   wcPayRadioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: text },
   wcNetworksRow: { flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 24 },
   wcNetworkBadge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 4 },
+  wcRaffleBanner: { marginTop: 18, borderRadius: 16, backgroundColor: '#e5ffed', paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'flex-start', gap: 10 },
+  wcRaffleIcon: { width: 16, height: 16, marginTop: 1 },
+  wcRaffleTitle: { fontSize: 14, lineHeight: 18, fontWeight: '700', letterSpacing: -0.08, color: greenMid },
+  wcRaffleBody: { fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted },
   wcAgreementEntry: { minHeight: 70, marginTop: 18, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: borderSubtle, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   wcAgreementEntryTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: text },
   wcAgreementEntrySub: { fontSize: 12, lineHeight: 16, color: muted },
