@@ -4518,23 +4518,25 @@ export default function App() {
   // Titles and bodies are kept short enough to hold one line on a 390pt phone.
   const tasheelOffer = wcProduct === 'bnpl'
     ? {
-        title: 'Split your purchase.',
-        body: <>{ob(`${bnplMonthly}/mo`)} for {ob(`${bnplMax} months`)}. {ob('0%')} interest, no fees.</>,
+        title: 'Split your purchase. Pay nothing extra.',
+        body: wcFlow === 'new'
+          ? <>Pay from {ob(bnplMonthly)} a month over up to {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>
+          : <>Pay {ob(bnplMonthly)} a month for {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>,
         planMax: bnplMax,
         planMin: 2,
-        aria: `Split your purchase with Tasheel: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest and 0 fees`,
+        aria: `Split your purchase with Tasheel and pay nothing extra: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
       }
     : wcFlow === 'existing'
     ? {
         title: 'Win 100% of it back.',
-        body: <>Buy today for a chance to win back {ob('100%')}.</>,
+        body: <>Transact today and get a chance to get back {ob('100%')} of your transaction value.</>,
         planMax: 36,
         planMin: 2,
-        aria: `Continue with Tasheel Finance: buy today for a chance to win back 100 percent of your transaction value`,
+        aria: `Continue with Tasheel Finance: transact today and get a chance to get back 100 percent of your transaction value`,
       }
     : {
-        title: `Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
-        body: <>Up to {ob('10%')} off, over up to {ob('36 months')}.</>,
+        title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
+        body: <>Save up to {ob('10%')} off your cart and pay over up to {ob('36 months')}.</>,
         planMax: 36,
         planMin: 2,
         aria: `Continue with Tasheel Finance: save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}, up to 10 percent off your cart, pay over up to 36 months`,
@@ -4901,7 +4903,7 @@ const styles = StyleSheet.create({
   xOfferRadioOn: { borderColor: '#1c8a2b', borderWidth: 2, backgroundColor: '#fff' },
   xOfferRadioDot: { width: 11, height: 11, borderRadius: 999, backgroundColor: '#1c8a2b' },
   xOfferTitle: { fontSize: 18, lineHeight: 24, fontWeight: '800', color: '#15191e', marginTop: 2 },
-  xOfferBody: { fontSize: 14, lineHeight: 20, color: '#2c3a47' },
+  xOfferBody: { fontSize: 15, lineHeight: 21, color: '#2c3a47' },
   xOfferBodyBold: { fontWeight: '700' },
   xOfferLink: { fontSize: 15, lineHeight: 21, fontWeight: '600', color: '#1467b3', marginTop: 2 },
   xOfferSteps: { gap: 8, marginTop: 8, paddingTop: 12, borderTopWidth: 1, borderTopColor: '#cfe6c9' },
