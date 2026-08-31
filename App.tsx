@@ -277,6 +277,7 @@ const figmaAssets = {
   // Lucky-draw banner art (Figma 4768:17326).
   wcRaffleBg: '/figma/wcRaffleBg.png',
   wcRaffleBox: '/figma/wcRaffleBox.png',
+  wcRaffleBoxSheet: '/figma/wcRaffleBoxSheet.png',
   // Black Apple Pay CTA pieces (Figma 3477:75321 — Apple pay).
   wcAppleLogoWhite: '/figma/wcAppleLogoWhite.svg',
   wcRiyalWhite: '/figma/wcRiyalWhite.svg',
@@ -1667,22 +1668,27 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
   };
   return (
     <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
-      <Pressable style={styles.wcPickerScrim} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" />
+      <Pressable style={[styles.wcPickerScrim, styles.wcRaffleDim]} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" />
       <Animated.View testID="wc-raffle-sheet" style={[styles.wcRaffleSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [420, 0] }) }] }]}>
         <View style={styles.sheetGrabber} />
-        <View style={styles.wcRaffleHero}>
-          <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleHeroImage}>
-            <View style={styles.wcRaffleScrim} />
-          </ImageBackground>
-          <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleSheetArt} />
+        <View style={styles.wcRaffleSheetContent}>
+          <View style={{ gap: 16, width: '100%' }}>
+            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleSheetArt} />
+            <View style={{ gap: 12, width: '100%' }}>
+              <View style={{ width: '100%' }}>
+                <Text style={styles.wcRaffleSheetKicker}>Your next payments</Text>
+                <Text style={styles.wcRaffleSheetTitle}>Could be on us!</Text>
+              </View>
+              <View style={{ width: '100%' }}>
+                <Text style={styles.wcRaffleSheetBody}>Complete your purchase to enter the draw</Text>
+                <Text style={styles.wcRaffleSheetBody}>One lucky winner will have all their remaining payments paid by Tasheel.</Text>
+              </View>
+            </View>
+          </View>
+          <Pressable testID="wc-raffle-cta" style={[styles.wcGreenCta, styles.wcRaffleSheetCta]} onPress={dismiss} accessibilityRole="button">
+            <Text style={styles.wcGreenCtaText}>Choose my plan</Text>
+          </Pressable>
         </View>
-        <View style={styles.wcRaffleSheetCopy}>
-          <Text style={styles.wcRaffleSheetTitle}>Your next payments{'\n'}could be on us.</Text>
-          <Text style={styles.wcRaffleSheetBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
-        </View>
-        <Pressable testID="wc-raffle-cta" style={[styles.wcGreenCta, styles.wcRaffleSheetCta]} onPress={dismiss} accessibilityRole="button">
-          <Text style={styles.wcGreenCtaText}>Choose my plan</Text>
-        </Pressable>
       </Animated.View>
     </View></ViewportLayer>
   );
@@ -4841,14 +4847,14 @@ const styles = StyleSheet.create({
   wcPayRadioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: text },
   wcNetworksRow: { flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 24 },
   wcNetworkBadge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 4 },
-  wcRaffleSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingTop: 6, paddingHorizontal: 16, paddingBottom: 104, gap: 20, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
-  wcRaffleHero: { height: 168, borderRadius: 20, overflow: 'hidden', backgroundColor: '#1b2b33', alignItems: 'center', justifyContent: 'center' },
-  wcRaffleHeroImage: { borderRadius: 20 },
-  wcRaffleSheetArt: { width: 150, height: 144 },
-  wcRaffleSheetCopy: { gap: 8, paddingHorizontal: 4 },
+  wcRaffleDim: { backgroundColor: 'rgba(0,0,0,0.6)' },
+  wcRaffleSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: canvas, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingTop: 5, paddingHorizontal: 16, paddingBottom: 104, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 37.5, shadowOffset: { width: 0, height: -15 } },
+  wcRaffleSheetContent: { width: '100%', gap: 24, alignItems: 'flex-start' },
+  wcRaffleSheetArt: { width: 117, height: 100, transform: [{ scaleX: -1 }] },
   wcRaffleSheetCta: { width: '100%' },
-  wcRaffleSheetTitle: { fontSize: 24, lineHeight: 30, fontWeight: '700', letterSpacing: 0.2, color: text },
-  wcRaffleSheetBody: { fontSize: 15, lineHeight: 21, letterSpacing: -0.24, color: muted },
+  wcRaffleSheetKicker: { fontSize: 28, lineHeight: 36, letterSpacing: 0.36, color: text },
+  wcRaffleSheetTitle: { fontSize: 34, lineHeight: 42, fontWeight: '700', letterSpacing: 0.38, color: text },
+  wcRaffleSheetBody: { fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted },
   wcRaffleBanner: { marginBottom: 16, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },  // 16pt above (wcPayBody) and below
   wcRaffleBgImage: { borderRadius: 16 },
   wcRaffleScrim: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)' },
