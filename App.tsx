@@ -1669,21 +1669,20 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
     <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
       <Pressable style={styles.wcPickerScrim} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" />
       <Animated.View testID="wc-raffle-sheet" style={[styles.wcRaffleSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [420, 0] }) }] }]}>
+        <View style={styles.sheetGrabber} />
         <View style={styles.wcRaffleHero}>
-          <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill}>
+          <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleHeroImage}>
             <View style={styles.wcRaffleScrim} />
           </ImageBackground>
           <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleSheetArt} />
         </View>
         <View style={styles.wcRaffleSheetCopy}>
-          <Text style={styles.wcRaffleSheetTitle}>Your next payments could be on us.</Text>
+          <Text style={styles.wcRaffleSheetTitle}>Your next payments{'\n'}could be on us.</Text>
           <Text style={styles.wcRaffleSheetBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
         </View>
-        <View style={styles.wcRaffleSheetCtaWrap}>
-          <Pressable testID="wc-raffle-cta" style={styles.wcGreenCta} onPress={dismiss} accessibilityRole="button">
-            <Text style={styles.wcGreenCtaText}>Choose my plan</Text>
-          </Pressable>
-        </View>
+        <Pressable testID="wc-raffle-cta" style={[styles.wcGreenCta, styles.wcRaffleSheetCta]} onPress={dismiss} accessibilityRole="button">
+          <Text style={styles.wcGreenCtaText}>Choose my plan</Text>
+        </Pressable>
       </Animated.View>
     </View></ViewportLayer>
   );
@@ -4842,12 +4841,13 @@ const styles = StyleSheet.create({
   wcPayRadioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: text },
   wcNetworksRow: { flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 24 },
   wcNetworkBadge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 4 },
-  wcRaffleSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingBottom: 108, gap: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
-  wcRaffleHero: { height: 176, overflow: 'hidden' },
-  wcRaffleSheetArt: { position: 'absolute', right: 12, top: 16, width: 150, height: 144, transform: [{ scaleX: -1 }] },
-  wcRaffleSheetCopy: { paddingHorizontal: 20, gap: 8 },
-  wcRaffleSheetCtaWrap: { paddingHorizontal: 20 },
-  wcRaffleSheetTitle: { fontSize: 22, lineHeight: 28, fontWeight: '700', letterSpacing: 0.3, color: text },
+  wcRaffleSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingTop: 6, paddingHorizontal: 16, paddingBottom: 104, gap: 20, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
+  wcRaffleHero: { height: 168, borderRadius: 20, overflow: 'hidden', backgroundColor: '#1b2b33', alignItems: 'center', justifyContent: 'center' },
+  wcRaffleHeroImage: { borderRadius: 20 },
+  wcRaffleSheetArt: { width: 150, height: 144 },
+  wcRaffleSheetCopy: { gap: 8, paddingHorizontal: 4 },
+  wcRaffleSheetCta: { width: '100%' },
+  wcRaffleSheetTitle: { fontSize: 24, lineHeight: 30, fontWeight: '700', letterSpacing: 0.2, color: text },
   wcRaffleSheetBody: { fontSize: 15, lineHeight: 21, letterSpacing: -0.24, color: muted },
   wcRaffleBanner: { marginBottom: 16, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },  // 16pt above (wcPayBody) and below
   wcRaffleBgImage: { borderRadius: 16 },
