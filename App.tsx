@@ -1501,8 +1501,12 @@ type WcProduct = 'bnpl' | 'plus';
 // financing on the full Murabaha fee schedule. Kept at module level so the fee
 // helpers below stay drop-in; App re-syncs it from state on every render.
 let wcActiveProduct: WcProduct = 'bnpl';
+// The lucky-draw intro is shown once per demo run, on the plan screen.
+let wcRaffleIntroSeen = false;
 let wcActiveTenures: readonly number[] = [2, 3, 4];
+let wcActiveFlow: WcFlow = 'existing';
 const configureWcOffer = (product: WcProduct, flow: WcFlow) => {
+  wcActiveFlow = flow;
   wcActiveProduct = product;
   wcActiveTenures = product === 'bnpl' ? (flow === 'new' ? [2, 3, 4, 6] : [2, 3, 4]) : [2, 3, 4, 6, 9, 12, 24, 36];
 };
@@ -1544,7 +1548,15 @@ const wcPrincipalFor = (months: number) => {
   return Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT);
 };
 const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(months) - wcPrincipalFor(months)) * 100) / 100);
-const wcPlanFee = (months: number) => (wcActiveProduct === 'bnpl' ? 0 : Math.round(wcPrincipalFor(months) * wcPlanFeeRate(months) * 100) / 100);
+const wcPlanFee = (months: number) => {
+  // BNPL is fee-free apart from the returning-customer 4-month plan, which
+  // carries the same 1% Murabaha fee as the Plus schedule.
+  if (wcActiveProduct === 'bnpl') {
+    if (wcActiveFlow === 'existing' && months === 4) return Math.round(wcPrincipalFor(months) * 0.01 * 100) / 100;
+    return 0;
+  }
+  return Math.round(wcPrincipalFor(months) * wcPlanFeeRate(months) * 100) / 100;
+};
 const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months)) * 100) / 100;
 const wcPlanMonthly = (months: number) => Math.round(((wcPrincipalFor(months) + wcPlanFee(months)) / months) * 100) / 100;
 // Plus 2-3 month plans collect only the down payment today; every installment
@@ -1640,6 +1652,43 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 
 // Figma 1878:13093 / 13247 / 1865:3575 — source layout extended to the
 // meeting-approved 2/3/4/6/9/12/24/36-month product set.
+// Lucky-draw introduction (art from Figma 4768:17326). Opens once when the
+// customer reaches the plan list, and closes into the plan choice.
+function WcRaffleSheet({ onClose }: { onClose: () => void }) {
+  const rise = useRef(new Animated.Value(0)).current;
+  const closing = useRef(false);
+  useEffect(() => {
+    Animated.timing(rise, { toValue: 1, duration: 300, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
+  }, [rise]);
+  const dismiss = () => {
+    if (closing.current) return;
+    closing.current = true;
+    Animated.timing(rise, { toValue: 0, duration: 240, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => onClose());
+  };
+  return (
+    <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
+      <Pressable style={styles.wcPickerScrim} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" />
+      <Animated.View testID="wc-raffle-sheet" style={[styles.wcRaffleSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [420, 0] }) }] }]}>
+        <View style={styles.wcRaffleHero}>
+          <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill}>
+            <View style={styles.wcRaffleScrim} />
+          </ImageBackground>
+          <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleSheetArt} />
+        </View>
+        <View style={styles.wcRaffleSheetCopy}>
+          <Text style={styles.wcRaffleSheetTitle}>Your next payments could be on us.</Text>
+          <Text style={styles.wcRaffleSheetBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
+        </View>
+        <View style={styles.wcRaffleSheetCtaWrap}>
+          <Pressable testID="wc-raffle-cta" style={styles.wcGreenCta} onPress={dismiss} accessibilityRole="button">
+            <Text style={styles.wcGreenCtaText}>Choose my plan</Text>
+          </Pressable>
+        </View>
+      </Animated.View>
+    </View></ViewportLayer>
+  );
+}
+
 // Figma 4406:63560 — Choose plan as a list. Every tenure is visible at once;
 // tapping a row selects it and raises the benefits sheet (Confirm / View details).
 // Amounts come from the live pricing engine, not the Figma placeholder copy.
@@ -1647,6 +1696,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
   const [sheet, setSheet] = useState<null | 'details' | 'schedule' | 'cart' | 'fee'>(null);
   const [picked, setPicked] = useState(false);
   const [leavePromptOpen, setLeavePromptOpen] = useState(false);
+  const [raffleOpen, setRaffleOpen] = useState(!wcRaffleIntroSeen);
   const rise = useRef(new Animated.Value(0)).current;
   // Scroll-driven header condensation (Figma 4406:63858): as the cart pill scrolls
   // away, a compact "Choose how to split" summary grows into the header block.
@@ -1806,7 +1856,8 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
             </Svg>
           </View>
         ) : null}
-        {picked && !leavePromptOpen ? (
+        {raffleOpen ? <WcRaffleSheet onClose={() => { wcRaffleIntroSeen = true; setRaffleOpen(false); }} /> : null}
+        {picked && !leavePromptOpen && !raffleOpen ? (
           <ViewportLayer>
             <View style={styles.wcBenefitLayer} pointerEvents="box-none">
               <Animated.View style={[styles.wcBenefitSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
@@ -1833,7 +1884,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>0% interest. 0% fees.</Text>
+                        <Text style={styles.wcBenefitHead}>{wcPlanFee(months) > 0 ? '0% interest.' : '0% interest. 0% fees.'}</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
@@ -2320,16 +2371,6 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
             </View>
           </View>
           <View style={styles.wcPayBody}>
-            <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
-              <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleBgImage}>
-                <View style={styles.wcRaffleScrim} />
-              </ImageBackground>
-              <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleArt} />
-              <View style={styles.wcRaffleCopy}>
-                <Text style={styles.wcRaffleTitle}>Your next payments could be on us.</Text>
-                <Text style={styles.wcRaffleBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
-              </View>
-            </View>
             <Text style={styles.wcPayMethodTitle}>Payment method</Text>
             <View style={{ marginTop: 12 }}>
               <Pressable testID="wc-pay-row-apple" style={styles.wcPayRow} onPress={() => setMethod('apple')} accessibilityRole="radio" accessibilityState={{ selected: method === 'apple' }}>
@@ -4508,23 +4549,27 @@ export default function App() {
     setWcFlow(flow);
     setWcProduct(product);
     setWcVerified(false);
+    wcRaffleIntroSeen = false;
     configureWcOffer(product, flow);
     setWcMonths(product === 'bnpl' ? 3 : 4);
     setRoute('checkout');
   };
   const bnplMax = wcFlow === 'new' ? 6 : 4;
-  const bnplMonthly = wcMoney(Math.round((WC_BNPL_CART_TOTAL / bnplMax) * 100) / 100);
+  const bnplMonthly = wcMoney(wcPlanMonthly(bnplMax));
+  const bnplFee = wcPlanFee(bnplMax);
   const ob = (value: React.ReactNode) => <Text style={styles.xOfferBodyBold}>{value}</Text>;
   // Titles and bodies are kept short enough to hold one line on a 390pt phone.
   const tasheelOffer = wcProduct === 'bnpl'
     ? {
-        title: 'Split your purchase. Pay nothing extra.',
+        title: bnplFee > 0 ? 'Split your purchase.' : 'Split your purchase. Pay nothing extra.',
         body: wcFlow === 'new'
           ? <>Pay from {ob(bnplMonthly)} a month over up to {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>
+          : bnplFee > 0
+          ? <>Pay {ob(bnplMonthly)} a month for {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('1%')} one-time fee.</>
           : <>Pay {ob(bnplMonthly)} a month for {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>,
         planMax: bnplMax,
         planMin: 2,
-        aria: `Split your purchase with Tasheel and pay nothing extra: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
+        aria: `Split your purchase with Tasheel: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest${bnplFee > 0 ? ' with a 1 percent one-time fee' : ' with 0 fees'}`,
       }
     : wcFlow === 'existing'
     ? {
@@ -4797,6 +4842,13 @@ const styles = StyleSheet.create({
   wcPayRadioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: text },
   wcNetworksRow: { flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 24 },
   wcNetworkBadge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 4 },
+  wcRaffleSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingBottom: 108, gap: 16, overflow: 'hidden', shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
+  wcRaffleHero: { height: 176, overflow: 'hidden' },
+  wcRaffleSheetArt: { position: 'absolute', right: 12, top: 16, width: 150, height: 144, transform: [{ scaleX: -1 }] },
+  wcRaffleSheetCopy: { paddingHorizontal: 20, gap: 8 },
+  wcRaffleSheetCtaWrap: { paddingHorizontal: 20 },
+  wcRaffleSheetTitle: { fontSize: 22, lineHeight: 28, fontWeight: '700', letterSpacing: 0.3, color: text },
+  wcRaffleSheetBody: { fontSize: 15, lineHeight: 21, letterSpacing: -0.24, color: muted },
   wcRaffleBanner: { marginBottom: 16, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },  // 16pt above (wcPayBody) and below
   wcRaffleBgImage: { borderRadius: 16 },
   wcRaffleScrim: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)' },
