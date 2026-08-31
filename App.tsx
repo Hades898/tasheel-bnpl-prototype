@@ -4561,28 +4561,24 @@ export default function App() {
   };
   const bnplMax = wcFlow === 'new' ? 6 : 4;
   const bnplMonthly = wcMoney(wcPlanMonthly(bnplMax));
-  const bnplFee = wcPlanFee(bnplMax);
   const ob = (value: React.ReactNode) => <Text style={styles.xOfferBodyBold}>{value}</Text>;
   // Titles and bodies are kept short enough to hold one line on a 390pt phone.
-  const tasheelOffer = wcProduct === 'bnpl'
+  const tasheelOffer = wcFlow === 'existing'
     ? {
-        title: bnplFee > 0 ? 'Split your purchase.' : 'Split your purchase. Pay nothing extra.',
-        body: wcFlow === 'new'
-          ? <>Pay from {ob(bnplMonthly)} a month over up to {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>
-          : bnplFee > 0
-          ? <>Pay {ob(bnplMonthly)} a month for {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('1%')} one-time fee.</>
-          : <>Pay {ob(bnplMonthly)} a month for {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>,
-        planMax: bnplMax,
-        planMin: 2,
-        aria: `Split your purchase with Tasheel: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest${bnplFee > 0 ? ' with a 1 percent one-time fee' : ' with 0 fees'}`,
-      }
-    : wcFlow === 'existing'
-    ? {
+        // Returning customers lead with the lucky draw on both products.
         title: 'Your remaining payments, on us.',
         body: <>Buy today to enter the draw. Win and Tasheel settles {ob('100%')} of what you still owe on this purchase.</>,
-        planMax: 36,
+        planMax: wcProduct === 'bnpl' ? bnplMax : 36,
         planMin: 2,
         aria: `Continue with Tasheel Finance: buy today to enter the draw, and if you win Tasheel settles 100 percent of what you still owe on this purchase`,
+      }
+    : wcProduct === 'bnpl'
+    ? {
+        title: 'Split your purchase. Pay nothing extra.',
+        body: <>Pay from {ob(bnplMonthly)} a month over up to {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>,
+        planMax: bnplMax,
+        planMin: 2,
+        aria: `Split your purchase with Tasheel: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
       }
     : {
         title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
@@ -4854,7 +4850,7 @@ const styles = StyleSheet.create({
   wcRaffleSheetCta: { width: '100%' },
   wcRaffleSheetKicker: { fontSize: 28, lineHeight: 36, letterSpacing: 0.36, color: text },
   wcRaffleSheetTitle: { fontSize: 34, lineHeight: 42, fontWeight: '700', letterSpacing: 0.38, color: text },
-  wcRaffleSheetBody: { fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted },
+  wcRaffleSheetBody: { fontSize: 15, lineHeight: 21, letterSpacing: -0.24, color: muted },
   wcRaffleBanner: { marginBottom: 16, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },  // 16pt above (wcPayBody) and below
   wcRaffleBgImage: { borderRadius: 16 },
   wcRaffleScrim: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)' },
