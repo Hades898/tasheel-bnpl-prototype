@@ -2328,7 +2328,7 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               </View>
             </View>
             <Text style={styles.wcPayMethodTitle}>Payment method</Text>
-            <View style={{ marginTop: 14 }}>
+            <View style={{ marginTop: 12 }}>
               <Pressable testID="wc-pay-row-apple" style={styles.wcPayRow} onPress={() => setMethod('apple')} accessibilityRole="radio" accessibilityState={{ selected: method === 'apple' }}>
                 <View style={styles.wcPayRowLeft}>
                   <View style={styles.wcPayLogoTile}><Image source={figmaImageSource('wcApplePay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 34, height: 34 }} /></View>
@@ -4791,7 +4791,7 @@ const styles = StyleSheet.create({
   wcPayActionsRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
   wcPayActionPill: { flex: 1, height: 42, borderRadius: 999, backgroundColor: '#e5e7eb', alignItems: 'center', justifyContent: 'center' },
   wcPayActionText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: text },
-  wcPayBody: { paddingHorizontal: 16, marginTop: 28, paddingBottom: SHOW_FAKE_CHROME ? 0 : 96 },
+  wcPayBody: { paddingHorizontal: 16, marginTop: 12, paddingBottom: SHOW_FAKE_CHROME ? 0 : 96 },
   wcPayMethodTitle: { fontSize: 17, lineHeight: 26, fontWeight: '700', color: text },
   wcPayRow: { height: 76, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcPayRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
@@ -4804,7 +4804,7 @@ const styles = StyleSheet.create({
   wcPayRadioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: text },
   wcNetworksRow: { flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 24 },
   wcNetworkBadge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 4 },
-  wcRaffleBanner: { marginTop: 18, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },
+  wcRaffleBanner: { marginBottom: 16, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },
   wcRaffleBgImage: { borderRadius: 16 },
   wcRaffleScrim: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)' },
   wcRaffleArt: { position: 'absolute', right: -45, top: -14, width: 131, height: 126 , transform: [{ scaleX: -1 }] },
