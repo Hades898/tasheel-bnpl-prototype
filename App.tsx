@@ -1701,7 +1701,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
   const [sheet, setSheet] = useState<null | 'details' | 'schedule' | 'cart' | 'fee'>(null);
   const [picked, setPicked] = useState(false);
   const [leavePromptOpen, setLeavePromptOpen] = useState(false);
-  const [raffleOpen, setRaffleOpen] = useState(!wcRaffleIntroSeen);
+  const [raffleOpen, setRaffleOpen] = useState(!wcRaffleIntroSeen && wcActiveFlow === 'existing');
   const rise = useRef(new Animated.Value(0)).current;
   // Scroll-driven header condensation (Figma 4406:63858): as the cart pill scrolls
   // away, a compact "Choose how to split" summary grows into the header block.
