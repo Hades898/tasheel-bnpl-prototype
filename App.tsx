@@ -2317,6 +2317,16 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
             </View>
           </View>
           <View style={styles.wcPayBody}>
+            <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
+              <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleBgImage}>
+                <View style={styles.wcRaffleScrim} />
+              </ImageBackground>
+              <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleArt} />
+              <View style={styles.wcRaffleCopy}>
+                <Text style={styles.wcRaffleTitle}>Your next payments could be on us.</Text>
+                <Text style={styles.wcRaffleBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
+              </View>
+            </View>
             <Text style={styles.wcPayMethodTitle}>Payment method</Text>
             <View style={{ marginTop: 14 }}>
               <Pressable testID="wc-pay-row-apple" style={styles.wcPayRow} onPress={() => setMethod('apple')} accessibilityRole="radio" accessibilityState={{ selected: method === 'apple' }}>
@@ -2351,16 +2361,6 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               <Text style={styles.wcMurabahaChevron}>›</Text>
             </Pressable>
             ) : null}
-            <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
-              <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleBgImage}>
-                <View style={styles.wcRaffleScrim} />
-              </ImageBackground>
-              <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleArt} />
-              <View style={styles.wcRaffleCopy}>
-                <Text style={styles.wcRaffleTitle}>Your next payments could be on us.</Text>
-                <Text style={styles.wcRaffleBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
-              </View>
-            </View>
           </View>
           <View style={styles.wcObBottom}>
             {SHOW_FAKE_CHROME ? payCta : null}
@@ -4535,11 +4535,11 @@ export default function App() {
       }
     : wcFlow === 'existing'
     ? {
-        title: 'Win 100% of it back.',
-        body: <>Transact today and get a chance to get back {ob('100%')} of your transaction value.</>,
+        title: 'Your remaining payments, on us.',
+        body: <>Buy today to enter the draw. Win and Tasheel settles {ob('100%')} of what you still owe on this purchase.</>,
         planMax: 36,
         planMin: 2,
-        aria: `Continue with Tasheel Finance: transact today and get a chance to get back 100 percent of your transaction value`,
+        aria: `Continue with Tasheel Finance: buy today to enter the draw, and if you win Tasheel settles 100 percent of what you still owe on this purchase`,
       }
     : {
         title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
@@ -4549,7 +4549,7 @@ export default function App() {
         aria: `Continue with Tasheel Finance: save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}, up to 10 percent off your cart, pay over up to 36 months`,
       };
   if (route === 'gate') return <DemoGate startDemo={startDemo} />;
-  if (route === 'wcMobile') return <WcMobile setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} requireConsent={wcFlow === 'new'} />;
+  if (route === 'wcMobile') return <WcMobile setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} requireConsent />;
   if (route === 'wcOtp') return <WcOtp setRoute={setRoute} phone={wcPhone} nextRoute={wcFlow === 'new' ? 'wcIdentity' : 'wcTenure'} />;
   if (route === 'wcIdentity') return <WcIdentity setRoute={setRoute} />;
   if (route === 'wcNafath') return <WcNafath setRoute={setRoute} />;
