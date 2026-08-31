@@ -2250,6 +2250,13 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
   const canPay = method !== null && (!needsMurabaha || agreementAccepted);
   const payCta = (
     <View style={styles.wcStickyCtaBar} pointerEvents="auto">
+      {needsMurabaha && !agreementAccepted ? (
+        <Pressable testID="wc-pay-agreement-hint" onPress={() => setSheet('murabaha')} accessibilityRole="button" accessibilityLabel="Review and accept the Murabaha agreement" style={styles.wcPayHintRow}>
+          <View style={styles.wcAgreementCheckbox} />
+          <Text style={styles.wcPayHintText}>Accept the Murabaha agreement to continue</Text>
+          <Text style={styles.wcMurabahaChevron}>›</Text>
+        </Pressable>
+      ) : null}
       {method === 'apple' ? (
         // Apple Pay CTA (Figma 3477:75695): black pill —  logo, "Pay", Riyal amount, all white.
         <Pressable testID="wc-pay-cta" disabled={!canPay} style={[styles.wcApplePayCta, !canPay && { opacity: 0.45 }]} onPress={() => pay()} accessibilityRole="button" accessibilityState={{ disabled: !canPay }} accessibilityLabel={`Pay ${wcMoney(today)} with Apple Pay`}>
@@ -2334,16 +2341,6 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               <View style={styles.wcNetworkBadge}><Image source={figmaImageSource('wcApplePay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 20, height: 20 }} /></View>
               <Image source={figmaImageSource('wcMada')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 28, height: 10 }} />
             </View>
-            <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
-              <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleBgImage}>
-                <View style={styles.wcRaffleScrim} />
-              </ImageBackground>
-              <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleArt} />
-              <View style={styles.wcRaffleCopy}>
-                <Text style={styles.wcRaffleTitle}>Your next payments could be on us.</Text>
-                <Text style={styles.wcRaffleBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
-              </View>
-            </View>
             {needsMurabaha ? (
             <Pressable testID="wc-murabaha-entry" style={styles.wcAgreementEntry} onPress={() => setSheet('murabaha')} accessibilityRole="button" accessibilityLabel="Review and accept Murabaha agreement">
               <View style={[styles.wcAgreementCheckbox, agreementAccepted && styles.wcAgreementCheckboxSelected]}>{agreementAccepted ? <Text style={styles.wcAgreementCheck}>✓</Text> : null}</View>
@@ -2354,6 +2351,16 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               <Text style={styles.wcMurabahaChevron}>›</Text>
             </Pressable>
             ) : null}
+            <View testID="wc-raffle-banner" style={styles.wcRaffleBanner} accessibilityRole="summary">
+              <ImageBackground source={figmaImageSource('wcRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcRaffleBgImage}>
+                <View style={styles.wcRaffleScrim} />
+              </ImageBackground>
+              <Image source={figmaImageSource('wcRaffleBox')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleArt} />
+              <View style={styles.wcRaffleCopy}>
+                <Text style={styles.wcRaffleTitle}>Your next payments could be on us.</Text>
+                <Text style={styles.wcRaffleBody}>Complete your purchase to enter the draw. One lucky winner will have all their remaining payments paid by Tasheel.</Text>
+              </View>
+            </View>
           </View>
           <View style={styles.wcObBottom}>
             {SHOW_FAKE_CHROME ? payCta : null}
@@ -4848,6 +4855,8 @@ const styles = StyleSheet.create({
   wcStickyCtaBar: SHOW_FAKE_CHROME
     ? { paddingHorizontal: 16, width: '100%' }
     : { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 22, backgroundColor: 'rgba(249,250,251,0.96)', zIndex: 30, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: -4 } },
+  wcPayHintRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff7ed', borderRadius: 14, borderWidth: 1, borderColor: '#fed7aa', paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 },
+  wcPayHintText: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '600', letterSpacing: -0.08, color: '#9a3412' },
   wcWhyDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#9ca3af', marginTop: 7 },
   // Fixed-height art window (Figma shows only the top ~40% of the phone mockup).
   wcQcHero: { height: 317, marginHorizontal: 16, marginTop: 16, overflow: 'hidden' },
