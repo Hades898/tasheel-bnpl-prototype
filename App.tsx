@@ -659,7 +659,7 @@ function AppShell({ children, scroll = true, surface = 'app' }: { children: Reac
       <SafeAreaView style={[styles.outer, { backgroundColor: canvas }]}>
         <StatusBar style="dark" />
         <ScrollView style={{ width: '100%', flex: 1 }} contentContainerStyle={styles.outerScroll} showsVerticalScrollIndicator={false}>
-          <View {...surfaceProps} style={[styles.phone, { maxWidth: width }]}>
+          <View {...surfaceProps} style={[styles.phone, { maxWidth: width }, scroll ? styles.phoneScrollable : null]}>
             {createElement('div', { style: { zoom, minHeight: '100%', display: 'flex', flexDirection: 'column', flexGrow: 1 } }, inner)}
           </View>
         </ScrollView>
@@ -4578,6 +4578,8 @@ const styles = StyleSheet.create({
   outer: { flex: 1, backgroundColor: '#dfe3e1', alignItems: 'center' },
   outerScroll: { flexGrow: 1, width: '100%', alignItems: 'center', justifyContent: 'flex-start' },
   phone: { width: '100%', minHeight: '100%', flex: 1, backgroundColor: canvas, overflow: 'hidden' },
+  // Scrolling screens grow with their content instead of being clipped to the viewport.
+  phoneScrollable: { flexGrow: 1, flexShrink: 0, flexBasis: 'auto', overflow: 'visible' },
 
   statusStrip: { height: 44, paddingHorizontal: 24, paddingTop: 14, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', zIndex: 5 },
   statusTime: { fontSize: 15, fontWeight: '600', color: '#0a0a0a', letterSpacing: 0.2 },
@@ -4782,7 +4784,7 @@ const styles = StyleSheet.create({
   wcPayActionsRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
   wcPayActionPill: { flex: 1, height: 42, borderRadius: 999, backgroundColor: '#e5e7eb', alignItems: 'center', justifyContent: 'center' },
   wcPayActionText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: text },
-  wcPayBody: { paddingHorizontal: 16, marginTop: 28 },
+  wcPayBody: { paddingHorizontal: 16, marginTop: 28, paddingBottom: SHOW_FAKE_CHROME ? 0 : 96 },
   wcPayMethodTitle: { fontSize: 17, lineHeight: 26, fontWeight: '700', color: text },
   wcPayRow: { height: 76, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcPayRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
