@@ -2250,10 +2250,13 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
   const canPay = method !== null && (!needsMurabaha || agreementAccepted);
   const payCta = (
     <View style={styles.wcStickyCtaBar} pointerEvents="auto">
-      {needsMurabaha && !agreementAccepted ? (
-        <Pressable testID="wc-pay-agreement-hint" onPress={() => setSheet('murabaha')} accessibilityRole="button" accessibilityLabel="Review and accept the Murabaha agreement" style={styles.wcPayHintRow}>
-          <View style={styles.wcAgreementCheckbox} />
-          <Text style={styles.wcPayHintText}>Accept the Murabaha agreement to continue</Text>
+      {needsMurabaha ? (
+        <Pressable testID="wc-murabaha-entry" onPress={() => setSheet('murabaha')} accessibilityRole="button" accessibilityLabel="Review and accept Murabaha agreement" style={[styles.wcAgreementEntry, styles.wcAgreementEntryDocked]}>
+          <View style={[styles.wcAgreementCheckbox, agreementAccepted && styles.wcAgreementCheckboxSelected]}>{agreementAccepted ? <Text style={styles.wcAgreementCheck}>✓</Text> : null}</View>
+          <View style={{ flex: 1, gap: 2 }}>
+            <Text style={styles.wcAgreementEntryTitle}>{agreementAccepted ? 'Murabaha agreement accepted' : 'Accept Murabaha agreement'}</Text>
+            <Text style={styles.wcAgreementEntrySub}>Review the required documents before paying</Text>
+          </View>
           <Text style={styles.wcMurabahaChevron}>›</Text>
         </Pressable>
       ) : null}
@@ -2351,16 +2354,6 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
               <View style={styles.wcNetworkBadge}><Image source={figmaImageSource('wcApplePay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 20, height: 20 }} /></View>
               <Image source={figmaImageSource('wcMada')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 28, height: 10 }} />
             </View>
-            {needsMurabaha ? (
-            <Pressable testID="wc-murabaha-entry" style={styles.wcAgreementEntry} onPress={() => setSheet('murabaha')} accessibilityRole="button" accessibilityLabel="Review and accept Murabaha agreement">
-              <View style={[styles.wcAgreementCheckbox, agreementAccepted && styles.wcAgreementCheckboxSelected]}>{agreementAccepted ? <Text style={styles.wcAgreementCheck}>✓</Text> : null}</View>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Text style={styles.wcAgreementEntryTitle}>{agreementAccepted ? 'Murabaha agreement accepted' : 'Accept Murabaha agreement'}</Text>
-                <Text style={styles.wcAgreementEntrySub}>Review the required documents before paying</Text>
-              </View>
-              <Text style={styles.wcMurabahaChevron}>›</Text>
-            </Pressable>
-            ) : null}
           </View>
           <View style={styles.wcObBottom}>
             {SHOW_FAKE_CHROME ? payCta : null}
@@ -4791,7 +4784,7 @@ const styles = StyleSheet.create({
   wcPayActionsRow: { flexDirection: 'row', gap: 12, marginTop: 16 },
   wcPayActionPill: { flex: 1, height: 42, borderRadius: 999, backgroundColor: '#e5e7eb', alignItems: 'center', justifyContent: 'center' },
   wcPayActionText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: text },
-  wcPayBody: { paddingHorizontal: 16, marginTop: 12, paddingBottom: SHOW_FAKE_CHROME ? 0 : 96 },
+  wcPayBody: { paddingHorizontal: 16, marginTop: 16, paddingBottom: SHOW_FAKE_CHROME ? 0 : 96 },
   wcPayMethodTitle: { fontSize: 17, lineHeight: 26, fontWeight: '700', color: text },
   wcPayRow: { height: 76, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcPayRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
@@ -4804,13 +4797,13 @@ const styles = StyleSheet.create({
   wcPayRadioDot: { width: 10, height: 10, borderRadius: 999, backgroundColor: text },
   wcNetworksRow: { flexDirection: 'row', alignItems: 'center', gap: 18, marginTop: 24 },
   wcNetworkBadge: { borderWidth: 1, borderColor: '#d1d5db', borderRadius: 4, paddingHorizontal: 3, paddingVertical: 4 },
-  wcRaffleBanner: { marginBottom: 16, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },
+  wcRaffleBanner: { marginBottom: 16, height: 104, borderRadius: 16, overflow: 'hidden', backgroundColor: '#1b2b33' },  // 16pt above (wcPayBody) and below
   wcRaffleBgImage: { borderRadius: 16 },
   wcRaffleScrim: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.2)' },
   wcRaffleArt: { position: 'absolute', right: -45, top: -14, width: 131, height: 126 , transform: [{ scaleX: -1 }] },
   wcRaffleCopy: { width: 296, padding: 16, gap: 8 },
   wcRaffleTitle: { fontSize: 14, lineHeight: 16, fontWeight: '700', letterSpacing: -0.2, color: '#ffffff' },
-  wcRaffleBody: { width: 246, fontSize: 11, lineHeight: 14, letterSpacing: 0.06, color: '#ffffff', opacity: 0.8 },
+  wcRaffleBody: { width: 246, fontSize: 12, lineHeight: 15, letterSpacing: 0.06, color: '#ffffff', opacity: 0.8 },
   wcAgreementEntry: { minHeight: 70, marginTop: 18, borderRadius: 16, backgroundColor: '#fff', borderWidth: 1, borderColor: borderSubtle, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   wcAgreementEntryTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600', color: text },
   wcAgreementEntrySub: { fontSize: 12, lineHeight: 16, color: muted },
@@ -4855,8 +4848,7 @@ const styles = StyleSheet.create({
   wcStickyCtaBar: SHOW_FAKE_CHROME
     ? { paddingHorizontal: 16, width: '100%' }
     : { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 22, backgroundColor: 'rgba(249,250,251,0.96)', zIndex: 30, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: -4 } },
-  wcPayHintRow: { flexDirection: 'row', alignItems: 'center', gap: 10, backgroundColor: '#fff7ed', borderRadius: 14, borderWidth: 1, borderColor: '#fed7aa', paddingHorizontal: 12, paddingVertical: 10, marginBottom: 10 },
-  wcPayHintText: { flex: 1, fontSize: 13, lineHeight: 18, fontWeight: '600', letterSpacing: -0.08, color: '#9a3412' },
+  wcAgreementEntryDocked: { marginTop: 0, marginBottom: 12, minHeight: 64 },
   wcWhyDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: '#9ca3af', marginTop: 7 },
   // Fixed-height art window (Figma shows only the top ~40% of the phone mockup).
   wcQcHero: { height: 317, marginHorizontal: 16, marginTop: 16, overflow: 'hidden' },
