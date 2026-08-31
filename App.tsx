@@ -4581,7 +4581,7 @@ export default function App() {
         aria: `Split your purchase with Tasheel: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
       }
     : {
-        title: `Split your way. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
+        title: `Split your purchase. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
         body: <>Save up to {ob('10%')} off your cart and pay over up to {ob('36 months')}.</>,
         planMax: 36,
         planMin: 2,
