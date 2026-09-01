@@ -278,6 +278,8 @@ const figmaAssets = {
   wcRaffleBg: '/figma/wcRaffleBg.png',
   wcRaffleBox: '/figma/wcRaffleBox.png',
   wcRaffleBoxSheet: '/figma/wcRaffleBoxSheet.png',
+  // Sharia compliance badge (Figma 4868:76660), tinted to the brand green.
+  wcShariaIcon: '/figma/wcShariaIcon.svg',
   // Black Apple Pay CTA pieces (Figma 3477:75321 — Apple pay).
   wcAppleLogoWhite: '/figma/wcAppleLogoWhite.svg',
   wcRiyalWhite: '/figma/wcRiyalWhite.svg',
@@ -1877,7 +1879,11 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied · Sharia compliant</Text>
+                        <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied</Text>
+                      </View>
+                      <View style={styles.wcBenefitHeadRow}>
+                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                        <Text style={styles.wcBenefitHead}>Sharia compliant</Text>
                       </View>
                       <View style={styles.wcBenefitBodyRow}>
                         <Text style={styles.wcBenefitBody}>You’re saving</Text>
@@ -1890,7 +1896,11 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>{wcPlanApr(months) > 0 ? `${Math.round(wcPlanApr(months) * 100)}% interest · Sharia compliant` : '0% interest · Sharia compliant'}</Text>
+                        <Text style={styles.wcBenefitHead}>{wcPlanApr(months) > 0 ? `${Math.round(wcPlanApr(months) * 100)}% interest` : '0% interest'}</Text>
+                      </View>
+                      <View style={styles.wcBenefitHeadRow}>
+                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                        <Text style={styles.wcBenefitHead}>Sharia compliant</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
