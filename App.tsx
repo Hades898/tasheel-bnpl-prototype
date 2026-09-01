@@ -1544,11 +1544,11 @@ const wcDiscountAmountFor = (months: number) => Math.round(wcCartTotalNow() * wc
 const wcOrderTotalFor = (months: number) => Math.round((wcCartTotalNow() - wcDiscountAmountFor(months)) * 100) / 100;
 const wcPrincipalFor = (months: number) => {
   if (wcActiveProduct === 'bnpl') return wcOrderTotalFor(months);
-  // Plus short plans (2-3 months) invert the split: the customer pays the
-  // available-limit amount up front and finances only the excess in equal
-  // installments (7,000 cart → 5,000 down + 2×1,000 or 3×666.67).
-  if (months <= 3) return Math.max(0, wcOrderTotalFor(months) - WC_AVAILABLE_LIMIT);
-  return Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT);
+  // Plus plans of 2 to 6 months take the available-limit amount up front and
+  // finance only the excess (7,000 cart → 5,000 down + 2×1,000). From 9 months
+  // the whole order is split into equal installments with no down payment.
+  if (months <= 6) return Math.max(0, wcOrderTotalFor(months) - WC_AVAILABLE_LIMIT);
+  return wcOrderTotalFor(months);
 };
 const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(months) - wcPrincipalFor(months)) * 100) / 100);
 // Fee and profit schedule, identical on both products: 2-3 months are free,
@@ -1563,7 +1563,7 @@ const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wc
 const wcPlanMonthly = (months: number) => Math.round(((wcPrincipalFor(months) + wcPlanFee(months) + wcPlanInterest(months)) / months) * 100) / 100;
 // Plus 2-3 month plans collect only the down payment today; every installment
 // lands on the following months. All other plans include the first installment.
-const wcIsShortPlusPlan = (months: number) => wcActiveProduct !== 'bnpl' && months <= 3;
+const wcIsShortPlusPlan = (months: number) => wcActiveProduct !== 'bnpl' && months <= 6;
 const wcInstallmentsAfterToday = (months: number) => (wcIsShortPlusPlan(months) ? months : months - 1);
 const wcPlanToday = (months: number) => Math.round((wcDownFor(months) + (wcIsShortPlusPlan(months) ? 0 : wcPlanMonthly(months))) * 100) / 100;
 // Deep link into the native Tasheel SwiftUI app. Nothing happens if the app is
@@ -1677,12 +1677,11 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
             <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleSheetArt} />
             <View style={{ gap: 12, width: '100%' }}>
               <View style={{ width: '100%' }}>
-                <Text style={styles.wcRaffleSheetKicker}>Your next payments</Text>
-                <Text style={styles.wcRaffleSheetTitle}>Could be on us!</Text>
+                <Text style={styles.wcRaffleSheetKicker}>Your Purchase</Text>
+                <Text style={styles.wcRaffleSheetTitle}>Could Be Free!</Text>
               </View>
               <View style={{ width: '100%' }}>
-                <Text style={styles.wcRaffleSheetBody}>Complete your purchase to enter the draw</Text>
-                <Text style={styles.wcRaffleSheetBody}>One lucky winner will have all their remaining payments paid by Tasheel.</Text>
+                <Text style={styles.wcRaffleSheetBody}>Check your milestones on the app — you're guaranteed to win something big or get your purchase for free!</Text>
               </View>
             </View>
           </View>
@@ -1808,7 +1807,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                   >
                     <View style={{ gap: 6, flexShrink: 1 }}>
                       <Text style={styles.wcPlanRowLabel}>{m} Payments</Text>
-                      {planFee === 0 && wcDownFor(m) > 0 ? (
+                      {wcDownFor(m) > 0 ? (
                         <View style={styles.wcPlanRowFeeLine}>
                           <Riyal size={11} color={muted} />
                           <Text style={styles.wcPlanRowNote}>{wcMoney(wcDownFor(m))} down payment</Text>
