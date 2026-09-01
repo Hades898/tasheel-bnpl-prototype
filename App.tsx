@@ -824,10 +824,11 @@ function XPayRow({ label, icon, selected, onPress }: { label: string; icon: Figm
 // Merchant entry — extra.com product page mimic (SMEG MP00015644), with Tasheel
 // replacing Baseeta in the "Shop now, pay later!" section. Real product image/price
 // from extra.com; tabby/tamara figures are the live site's values for this product.
-function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer: { title: string; body: React.ReactNode; planMax: number; planMin: number; aria: string } }) {
+function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer: { title: string; body: React.ReactNode; planMax: number; planMin: number; aria: string; raffle?: boolean } }) {
   const [added, setAdded] = useState(false);
   const [checkoutMethod, setCheckoutMethod] = useState<'card' | 'apple' | 'tasheel'>('tasheel');
   const [howOpen, setHowOpen] = useState(false);
+  const [raffleInfoOpen, setRaffleInfoOpen] = useState(false);
   return (
     <AppShell surface="checkout">
       <StatusStrip />
@@ -892,8 +893,8 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
               </View>
               <Text style={styles.xOfferTitle}>{offer.title}</Text>
               <Text style={styles.xOfferBody}>{offer.body}</Text>
-              <Pressable onPress={() => setHowOpen((v) => !v)} accessibilityRole="button" accessibilityLabel="Learn more about Tasheel Finance" hitSlop={6}>
-                <Text style={styles.xOfferLink}>{howOpen ? 'Hide details' : 'Learn more'}</Text>
+              <Pressable testID="wc-offer-learn-more" onPress={() => (offer.raffle ? setRaffleInfoOpen(true) : setHowOpen((v) => !v))} accessibilityRole="button" accessibilityLabel={offer.raffle ? 'Learn more about the draw' : 'Learn more about Tasheel Finance'} hitSlop={6}>
+                <Text style={styles.xOfferLink}>{!offer.raffle && howOpen ? 'Hide details' : 'Learn more'}</Text>
               </Pressable>
               {howOpen ? (
                 <View style={styles.xOfferSteps}>
@@ -954,6 +955,7 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
         <SafariCompactBar url="extra.com" />
       </View>
       </ScreenFade>
+      {raffleInfoOpen ? <WcRaffleExplainerSheet onClose={() => setRaffleInfoOpen(false)} /> : null}
     </AppShell>
   );
 }
@@ -1658,6 +1660,74 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 // meeting-approved 2/3/4/6/9/12/24/36-month product set.
 // Lucky-draw introduction (art from Figma 4768:17326). Opens once when the
 // customer reaches the plan list, and closes into the plan choice.
+// Draw entries as a stamp card: each Tasheel purchase fills the next stamp.
+const WC_RAFFLE_STAMPS = 3;
+function WcRaffleStamps({ collected }: { collected: number }) {
+  return (
+    <View style={styles.wcStampRow}>
+      <View pointerEvents="none" style={styles.wcStampTrack} />
+      {Array.from({ length: WC_RAFFLE_STAMPS }, (_, i) => {
+        const filled = i < collected;
+        return (
+          <View key={i} style={styles.wcStampCell}>
+            <View style={[styles.wcStamp, filled ? styles.wcStampFilled : styles.wcStampEmpty]}>
+              {filled ? (
+                <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcStampArt} />
+              ) : (
+                <Text style={styles.wcStampNumber}>{i + 1}</Text>
+              )}
+            </View>
+            <Text style={[styles.wcStampLabel, filled && styles.wcStampLabelOn]}>
+              {filled ? `Entry ${i + 1}` : `Purchase ${i + 1}`}
+            </Text>
+          </View>
+        );
+      })}
+    </View>
+  );
+}
+
+// "Learn more" explainer: how the draw works and how entries multiply.
+function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
+  const rise = useRef(new Animated.Value(0)).current;
+  const closing = useRef(false);
+  useEffect(() => {
+    Animated.timing(rise, { toValue: 1, duration: 300, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
+  }, [rise]);
+  const dismiss = () => {
+    if (closing.current) return;
+    closing.current = true;
+    Animated.timing(rise, { toValue: 0, duration: 240, easing: Easing.in(Easing.quad), useNativeDriver: true }).start(() => onClose());
+  };
+  return (
+    <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
+      <Pressable style={[styles.wcPickerScrim, styles.wcRaffleDim]} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" />
+      <Animated.View testID="wc-raffle-explainer" style={[styles.wcRaffleSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [460, 0] }) }] }]}>
+        <View style={styles.sheetGrabber} />
+        <View style={[styles.wcRaffleSheetContent, { gap: 18 }]}>
+          <View style={{ gap: 12, width: '100%' }}>
+            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleExplainerArt} />
+            <View style={{ gap: 8, width: '100%' }}>
+              <View style={{ width: '100%' }}>
+                <Text style={styles.wcRaffleExplainerKicker}>Every purchase</Text>
+                <Text style={styles.wcRaffleExplainerTitle}>Adds an Entry</Text>
+              </View>
+              <Text style={styles.wcRaffleSheetBody}>Pay with Tasheel and you're in the draw. Every purchase adds another entry, so your odds keep climbing.</Text>
+            </View>
+          </View>
+          <View style={styles.wcStampCard}>
+            <WcRaffleStamps collected={0} />
+            <Text style={styles.wcStampCaption}>Collect entries with every purchase. One winner has their whole plan settled by Tasheel.</Text>
+          </View>
+          <Pressable testID="wc-raffle-explainer-cta" style={[styles.wcGreenCta, styles.wcRaffleSheetCta]} onPress={dismiss} accessibilityRole="button">
+            <Text style={styles.wcGreenCtaText}>Got it</Text>
+          </Pressable>
+        </View>
+      </Animated.View>
+    </View></ViewportLayer>
+  );
+}
+
 function WcRaffleSheet({ onClose }: { onClose: () => void }) {
   const rise = useRef(new Animated.Value(0)).current;
   const closing = useRef(false);
@@ -2526,6 +2596,17 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
             <View style={styles.reviewDivider} />
             <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Reference</Text><Text style={styles.wcSuccessValue}>{WC_ORDER_REFERENCE}</Text></View>
           </View>
+          {wcActiveFlow === 'existing' ? (
+            <View testID="wc-success-raffle" style={[styles.wcSuccessCard, { gap: 12 }]}>
+              <View style={styles.wcStampHeadRow}>
+                <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 16, height: 16 }} />
+                <Text style={styles.wcStampHeadText}>You're in the draw</Text>
+                <View style={styles.wcStampProgress}><Text style={styles.wcStampProgressText}>1 of {WC_RAFFLE_STAMPS}</Text></View>
+              </View>
+              <WcRaffleStamps collected={1} />
+              <Text style={styles.wcStampCaption}>This purchase is your first entry. Two more Tasheel purchases and you triple your odds of having a plan settled for you.</Text>
+            </View>
+          ) : null}
           <View style={[styles.wcSuccessCard, { gap: 10 }]}>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
               <TasheelMark size={26} />
@@ -4585,6 +4666,7 @@ export default function App() {
           body: <>Pay {ob(`SAR ${bnplMonthly}/month`)} for up to {ob(`${bnplMax} payments`)} at {ob('0%')} interest, and get a chance to win your purchase back.</>,
           planMax: bnplMax,
           planMin: 2,
+          raffle: true,
           aria: `Pay SAR ${bnplMonthly} per month for up to ${bnplMax} payments at 0 percent interest, and get a chance to win your purchase back`,
         }
       : {
@@ -4600,6 +4682,7 @@ export default function App() {
         body: <>Pay from {ob(`SAR ${plusMonthly}/month`)} over up to {ob('36 months')} and get a chance to win your purchase back.</>,
         planMax: 36,
         planMin: 2,
+        raffle: true,
         aria: `Pay from SAR ${plusMonthly} per month over up to 36 months, and get a chance to win your purchase back`,
       }
     : {
@@ -4870,6 +4953,25 @@ const styles = StyleSheet.create({
   wcRaffleSheetContent: { width: '100%', gap: 24, alignItems: 'flex-start' },
   wcRaffleSheetArt: { width: 117, height: 100, transform: [{ scaleX: -1 }] },
   wcRaffleSheetCta: { width: '100%' },
+  wcRaffleExplainerArt: { width: 92, height: 79, transform: [{ scaleX: -1 }] },
+  wcRaffleExplainerKicker: { fontSize: 20, lineHeight: 26, letterSpacing: 0.3, color: text },
+  wcRaffleExplainerTitle: { fontSize: 26, lineHeight: 32, fontWeight: '700', letterSpacing: 0.35, color: text },
+  wcStampCard: { width: '100%', backgroundColor: surface, borderRadius: 20, padding: 14, gap: 10 },
+  wcStampRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' },
+  wcStampTrack: { position: 'absolute', left: 58, right: 58, top: 25, height: 0, borderTopWidth: 2, borderColor: '#e5e7eb', borderStyle: 'dashed' },
+  wcStampCell: { alignItems: 'center', gap: 6, flex: 1 },
+  wcStamp: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
+  wcStampFilled: { backgroundColor: '#e5ffed', borderWidth: 1.5, borderColor: '#23a107', shadowColor: '#23a107', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
+  wcStampEmpty: { backgroundColor: '#f3f4f6', borderWidth: 1.5, borderColor: '#e5e7eb', borderStyle: 'dashed' },
+  wcStampArt: { width: 30, height: 29 },
+  wcStampNumber: { fontSize: 17, fontWeight: '700', color: '#9ca3af' },
+  wcStampLabel: { fontSize: 11, lineHeight: 14, color: muted },
+  wcStampLabelOn: { color: greenMid, fontWeight: '600' },
+  wcStampCaption: { fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted },
+  wcStampHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  wcStampProgress: { marginLeft: 'auto', backgroundColor: '#f0fdf4', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
+  wcStampProgressText: { fontSize: 12, lineHeight: 16, fontWeight: '700', color: greenMid },
+  wcStampHeadText: { fontSize: 15, lineHeight: 20, fontWeight: '700', letterSpacing: -0.24, color: greenMid },
   wcRaffleSheetKicker: { fontSize: 28, lineHeight: 36, letterSpacing: 0.36, color: text },
   wcRaffleSheetTitle: { fontSize: 34, lineHeight: 42, fontWeight: '700', letterSpacing: 0.38, color: text },
   wcRaffleSheetBody: { fontSize: 15, lineHeight: 21, letterSpacing: -0.24, color: muted },
