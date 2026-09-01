@@ -4577,33 +4577,33 @@ export default function App() {
   const tasheelOffer = wcProduct === 'bnpl'
     ? wcFlow === 'existing'
       ? {
-          title: 'You Could Get your full payment for Free',
-          body: <>Pay {ob(`SAR ${bnplMonthly}`)} monthly over {ob(`${bnplMax} payments`)}, {ob('0%')} interest and get a chance to have it for free</>,
+          title: 'Your Purchase Could Be Free',
+          body: <>Pay {ob(`SAR ${bnplMonthly}/month`)} for up to {ob(`${bnplMax} payments`)} at {ob('0%')} interest, and get a chance to win your purchase back.</>,
           planMax: bnplMax,
           planMin: 2,
-          aria: `Pay SAR ${bnplMonthly} monthly over ${bnplMax} payments at 0 percent interest, and get a chance to have it for free`,
+          aria: `Pay SAR ${bnplMonthly} per month for up to ${bnplMax} payments at 0 percent interest, and get a chance to win your purchase back`,
         }
       : {
-          title: `Split up to ${bnplMax} payments, 0% interest`,
-          body: <>Pay {ob(`SAR ${bnplMonthly}`)} monthly over {ob(`${bnplMax} payments`)}, {ob('0%')} interest</>,
+          title: `Split into Up to ${bnplMax} Payments at 0% Interest`,
+          body: <>Pay {ob(`SAR ${bnplMonthly}/month`)} for up to {ob(`${bnplMax} payments`)} with {ob('0%')} interest.</>,
           planMax: bnplMax,
           planMin: 2,
-          aria: `Split up to ${bnplMax} payments at 0 percent interest: pay SAR ${bnplMonthly} monthly`,
+          aria: `Split into up to ${bnplMax} payments at 0 percent interest: pay SAR ${bnplMonthly} per month`,
         }
     : wcFlow === 'existing'
     ? {
-        title: 'Up to 36 Months to Pay',
-        body: <>Pay {ob(`SAR ${plusMonthly}`)} monthly over up to {ob('36 payments')} and get a chance to have it for free</>,
+        title: 'Your Purchase Could Be Free',
+        body: <>Pay from {ob(`SAR ${plusMonthly}/month`)} over up to {ob('36 months')} and get a chance to win your purchase back.</>,
         planMax: 36,
         planMin: 2,
-        aria: `Pay SAR ${plusMonthly} monthly over up to 36 payments, and get a chance to have it for free`,
+        aria: `Pay from SAR ${plusMonthly} per month over up to 36 months, and get a chance to win your purchase back`,
       }
     : {
-        title: 'Split Up to 36 and Save Up to 10%',
-        body: <>Pay {ob(`SAR ${plusMonthly}`)} monthly up to {ob('36 payments')}, plus up to {ob('10%')} instant discount</>,
+        title: 'Pay Over Up to 36 Months & Save 10%',
+        body: <>Pay from {ob(`SAR ${plusMonthly}/month`)} over up to {ob('36 months')} and get up to {ob('10%')} instant discount.</>,
         planMax: 36,
         planMin: 2,
-        aria: `Split up to 36 payments and save up to 10 percent: pay SAR ${plusMonthly} monthly with up to a 10 percent instant discount`,
+        aria: `Pay from SAR ${plusMonthly} per month over up to 36 months and get up to a 10 percent instant discount`,
       };
   if (route === 'gate') return <DemoGate startDemo={startDemo} />;
   if (route === 'wcMobile') return <WcMobile setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} requireConsent />;
