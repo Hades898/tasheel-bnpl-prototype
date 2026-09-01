@@ -730,7 +730,7 @@ function DemoGate({ startDemo }: { startDemo: (flow: WcFlow, product: WcProduct)
                 <View style={{ gap: 14 }}>
                   <Pressable testID="gate-bnpl" onPress={() => setProduct('bnpl')} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardPrimary, pressed && { opacity: 0.9 }]}>
                     <Text style={styles.gateCardPrimaryTitle}>BNPL transaction</Text>
-                    <Text style={styles.gateCardPrimarySub}>Short interest-free plans. 0 fees, 0 interest.</Text>
+                    <Text style={styles.gateCardPrimarySub}>Short plans with zero fees and 0% interest.</Text>
                     <Text style={styles.gateCardPrimaryCta}>Next →</Text>
                   </Pressable>
                   <Pressable testID="gate-bnpl-plus" onPress={() => setProduct('plus')} accessibilityRole="button" style={({ pressed }) => [styles.gateCard, styles.gateCardSecondary, pressed && { opacity: 0.9 }]}>
@@ -1862,10 +1862,10 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                             <Riyal size={11} color={muted} />
                             <Text style={styles.wcPlanRowNote}>{wcMoney(wcDownFor(m))} down payment</Text>
                           </View>
-                          {planFee === 0 && wcPlanApr(m) === 0 ? <Text style={styles.wcPlanRowNote}>0% interest · 0 fees</Text> : null}
+                          {planFee === 0 && wcPlanApr(m) === 0 ? <Text style={styles.wcPlanRowNote}>Zero fees · 0% interest</Text> : null}
                         </View>
                       ) : planFee === 0 ? (
-                        <Text style={styles.wcPlanRowNote}>0% interest · 0 fees</Text>
+                        <Text style={styles.wcPlanRowNote}>Zero fees · 0% interest</Text>
                       ) : (
                         <View style={styles.wcPlanRowFeeLine}>
                           <Riyal size={11} color={muted} />
@@ -1947,7 +1947,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>0% interest</Text>
+                        <Text style={styles.wcBenefitHead}>{wcPlanFee(months) === 0 ? 'Zero fees · 0% interest' : '0% interest'}</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
@@ -2043,10 +2043,10 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
                 <Image source={figmaImageSource('wcInfoCircle')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 13, height: 13 }} />
               </Pressable>
             </View>
-            {fee === 0 ? <Text style={styles.wcDetailsDim}>No fees</Text> : <Money amount={wcMoney(fee)} size={17} />}
+            {fee === 0 ? <Text style={styles.wcDetailsDim}>Zero fees</Text> : <Money amount={wcMoney(fee)} size={17} />}
             {feeTipOpen ? (
               <View style={styles.wcFeeTip} pointerEvents="none">
-                <Text style={styles.wcFeeTipText}>{fee === 0 ? 'This plan has no fees and no interest.' : `Plans of 4 months and longer carry a 1% Murabaha fee on the financed amount. It is split equally across the ${months} installments.${wcPlanInterest(months) > 0 ? ` This plan also carries a ${Math.round(wcPlanApr(months) * 100)}% annual profit rate, included in the total below.` : ''}`}</Text>
+                <Text style={styles.wcFeeTipText}>{fee === 0 ? 'This plan carries zero fees and 0% interest.' : `Plans of 4 months and longer carry a 1% Murabaha fee on the financed amount. It is split equally across the ${months} installments.${wcPlanInterest(months) > 0 ? ` This plan also carries a ${Math.round(wcPlanApr(months) * 100)}% annual profit rate, included in the total below.` : ''}`}</Text>
               </View>
             ) : null}
           </View>
@@ -2185,7 +2185,7 @@ function WcWhyTodaySheet({ months, onClose }: { months: number; onClose: () => v
             {wcHasDiscount() ? (
               <Text style={styles.wcWhyText}>Your discounted order is <Riyal size={10} color={muted} /> {wcMoney(wcOrderTotalFor(months))}. Your available limit finances <Riyal size={10} color={muted} /> {wcMoney(wcPrincipalFor(months))}, so the required down payment is <Riyal size={10} color={muted} /> {wcMoney(wcDownFor(months))}.</Text>
             ) : (
-              <Text style={styles.wcWhyText}>Your order total is <Riyal size={10} color={muted} /> {wcMoney(wcCartTotalNow())}, split evenly with no fees and no interest. There is no down payment — today you simply pay the first of your {months} installments.</Text>
+              <Text style={styles.wcWhyText}>Your order total is <Riyal size={10} color={muted} /> {wcMoney(wcCartTotalNow())}, split evenly with zero fees and 0% interest. There is no down payment — today you simply pay the first of your {months} installments.</Text>
             )}
           </View>
           <View style={styles.wcWhyRow}>
@@ -2198,7 +2198,7 @@ function WcWhyTodaySheet({ months, onClose }: { months: number; onClose: () => v
           </View>
           <View style={styles.wcWhyRow}>
             <View style={styles.wcWhyDot} />
-            <Text style={styles.wcWhyText}>{fee === 0 ? 'This plan has no fees and no interest.' : <>The <Riyal size={12} color={muted} /> {wcMoney(fee)} Murabaha fee is included in the equal installments.</>}</Text>
+            <Text style={styles.wcWhyText}>{fee === 0 ? 'This plan carries zero fees and 0% interest.' : <>The <Riyal size={12} color={muted} /> {wcMoney(fee)} Murabaha fee is included in the equal installments.</>}</Text>
           </View>
         </View>
         <Pressable testID="wc-why-got-it" style={styles.wcGreenCta} onPress={onClose} accessibilityRole="button">
