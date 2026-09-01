@@ -893,8 +893,8 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
               </View>
               <Text style={styles.xOfferTitle}>{offer.title}</Text>
               <Text style={styles.xOfferBody}>{offer.body}</Text>
-              <Pressable testID="wc-offer-learn-more" onPress={() => (offer.raffle ? setRaffleInfoOpen(true) : setHowOpen((v) => !v))} accessibilityRole="button" accessibilityLabel={offer.raffle ? 'Learn more about the draw' : 'Learn more about Tasheel Finance'} hitSlop={6}>
-                <Text style={styles.xOfferLink}>{!offer.raffle && howOpen ? 'Hide details' : 'Learn more'}</Text>
+              <Pressable testID="wc-offer-learn-more" onPress={() => setRaffleInfoOpen(true)} accessibilityRole="button" accessibilityLabel={offer.raffle ? 'Learn more about the draw' : 'Learn more about Tasheel Finance'} hitSlop={6}>
+                <Text style={styles.xOfferLink}>Learn more</Text>
               </Pressable>
               {howOpen ? (
                 <View style={styles.xOfferSteps}>
@@ -955,7 +955,17 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
         <SafariCompactBar url="extra.com" />
       </View>
       </ScreenFade>
-      {raffleInfoOpen ? <WcRaffleExplainerSheet onClose={() => setRaffleInfoOpen(false)} /> : null}
+      {raffleInfoOpen ? (
+        <WcRaffleExplainerSheet
+          onClose={() => setRaffleInfoOpen(false)}
+          raffle={!!offer.raffle}
+          steps={[
+            'Verify your number and ID. It takes about a minute.',
+            `Pick a plan from ${offer.planMin} to ${offer.planMax} months.`,
+            'Pay the first installment now, the rest on schedule.',
+          ]}
+        />
+      ) : null}
     </AppShell>
   );
 }
@@ -1687,7 +1697,7 @@ function WcRaffleStamps({ collected }: { collected: number }) {
 }
 
 // "Learn more" explainer: how the draw works and how entries multiply.
-function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
+function WcRaffleExplainerSheet({ onClose, raffle, steps }: { onClose: () => void; raffle: boolean; steps: string[] }) {
   const rise = useRef(new Animated.Value(0)).current;
   const closing = useRef(false);
   useEffect(() => {
@@ -1705,19 +1715,38 @@ function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
         <View style={styles.sheetGrabber} />
         <View style={[styles.wcRaffleSheetContent, { gap: 18 }]}>
           <View style={{ gap: 12, width: '100%' }}>
-            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleExplainerArt} />
+            {raffle ? (
+              <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleExplainerArt} />
+            ) : (
+              <Image source={figmaImageSource('wcTasheelLogo')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcOfferInfoLogo} />
+            )}
             <View style={{ gap: 8, width: '100%' }}>
               <View style={{ width: '100%' }}>
-                <Text style={styles.wcRaffleExplainerKicker}>You could win</Text>
-                <Text style={styles.wcRaffleExplainerTitle}>A Mega Prize!</Text>
+                <Text style={styles.wcRaffleExplainerKicker}>{raffle ? 'You could win' : 'Shop now,'}</Text>
+                <Text style={styles.wcRaffleExplainerTitle}>{raffle ? 'A Mega Prize!' : 'Pay Your Way'}</Text>
               </View>
-              <Text style={styles.wcRaffleSheetBody}>Complete your purchase for a chance to win the mega prize. Your chances multiply with every Tasheel purchase.</Text>
+              <Text style={styles.wcRaffleSheetBody}>
+                {raffle
+                  ? 'Complete your purchase for a chance to win the mega prize. Your chances multiply with every Tasheel purchase.'
+                  : 'Split your purchase into monthly payments with Tasheel. Set it up once and pay the rest on schedule.'}
+              </Text>
             </View>
           </View>
-          <View style={styles.wcStampCard}>
-            <WcRaffleStamps collected={0} />
-            <Text style={styles.wcStampCaption}>Every Tasheel purchase adds another entry, with no limit. The more you transact, the better your odds of winning the mega prize.</Text>
-          </View>
+          {raffle ? (
+            <View style={styles.wcStampCard}>
+              <WcRaffleStamps collected={0} />
+              <Text style={styles.wcStampCaption}>Every Tasheel purchase adds another entry, with no limit. The more you transact, the better your odds of winning the mega prize.</Text>
+            </View>
+          ) : (
+            <View style={styles.wcStampCard}>
+              {steps.map((line, i) => (
+                <View key={line} style={styles.xOfferStepRow}>
+                  <View style={styles.xOfferStepNum}><Text style={styles.xOfferStepNumText}>{i + 1}</Text></View>
+                  <Text style={styles.xOfferStepText}>{line}</Text>
+                </View>
+              ))}
+            </View>
+          )}
           <Pressable testID="wc-raffle-explainer-cta" style={[styles.wcGreenCta, styles.wcRaffleSheetCta]} onPress={dismiss} accessibilityRole="button">
             <Text style={styles.wcGreenCtaText}>Got it</Text>
           </Pressable>
@@ -4953,6 +4982,7 @@ const styles = StyleSheet.create({
   wcRaffleSheetArt: { width: 117, height: 100, transform: [{ scaleX: -1 }] },
   wcRaffleSheetCta: { width: '100%' },
   wcRaffleExplainerArt: { width: 92, height: 79, transform: [{ scaleX: -1 }] },
+  wcOfferInfoLogo: { width: 116, height: 34 },
   wcRaffleExplainerKicker: { fontSize: 20, lineHeight: 26, letterSpacing: 0.3, color: text },
   wcRaffleExplainerTitle: { fontSize: 26, lineHeight: 32, fontWeight: '700', letterSpacing: 0.35, color: text },
   wcStampCard: { width: '100%', backgroundColor: surface, borderRadius: 20, padding: 14, gap: 10, overflow: 'hidden' },
