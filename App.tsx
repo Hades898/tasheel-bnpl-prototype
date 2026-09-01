@@ -1660,32 +1660,6 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 // meeting-approved 2/3/4/6/9/12/24/36-month product set.
 // Lucky-draw introduction (art from Figma 4768:17326). Opens once when the
 // customer reaches the plan list, and closes into the plan choice.
-// Draw entries as a stamp card. Entries are uncapped, so the row shows the
-// first few and trails off rather than implying a target.
-const WC_RAFFLE_STAMPS = 3;
-function WcRaffleStamps({ collected }: { collected: number }) {
-  return (
-    <View style={styles.wcStampRow}>
-      <View pointerEvents="none" style={styles.wcStampTrack} />
-      {Array.from({ length: WC_RAFFLE_STAMPS }, (_, i) => {
-        const filled = i < collected;
-        return (
-          <View key={i} style={styles.wcStampCell}>
-            <View style={[styles.wcStamp, filled ? styles.wcStampFilled : styles.wcStampEmpty]}>
-              {filled ? (
-                <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcStampArt} />
-              ) : (
-                <Text style={styles.wcStampNumber}>{i + 1}</Text>
-              )}
-            </View>
-            <Text style={[styles.wcStampLabel, filled && styles.wcStampLabelOn]}>Entry {i + 1}</Text>
-          </View>
-        );
-      })}
-    </View>
-  );
-}
-
 // "Learn more" explainer: how the draw works and how entries multiply.
 function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
   const rise = useRef(new Animated.Value(0)).current;
@@ -1711,12 +1685,8 @@ function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
                 <Text style={styles.wcRaffleExplainerKicker}>You could win</Text>
                 <Text style={styles.wcRaffleExplainerTitle}>A Mega Prize!</Text>
               </View>
-              <Text style={styles.wcRaffleSheetBody}>Complete your purchase for a chance to win the mega prize. Your chances multiply with every Tasheel purchase.</Text>
+              <Text style={styles.wcRaffleSheetBody}>Complete your purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
             </View>
-          </View>
-          <View style={styles.wcStampCard}>
-            <WcRaffleStamps collected={0} />
-            <Text style={styles.wcStampCaption}>Every Tasheel purchase adds another entry, with no limit. The more you transact, the better your odds of winning the mega prize.</Text>
           </View>
           <Pressable testID="wc-raffle-explainer-cta" style={[styles.wcGreenCta, styles.wcRaffleSheetCta]} onPress={dismiss} accessibilityRole="button">
             <Text style={styles.wcGreenCtaText}>Got it</Text>
@@ -1752,7 +1722,7 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
                 <Text style={styles.wcRaffleSheetTitle}>Could Be Free!</Text>
               </View>
               <View style={{ width: '100%' }}>
-                <Text style={styles.wcRaffleSheetBody}>Check your milestones on the app — you're guaranteed to win something big or get your purchase for free!</Text>
+                <Text style={styles.wcRaffleSheetBody}>Complete your purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
               </View>
             </View>
           </View>
@@ -2601,14 +2571,12 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
             <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Reference</Text><Text style={styles.wcSuccessValue}>{WC_ORDER_REFERENCE}</Text></View>
           </View>
           {wcActiveFlow === 'existing' ? (
-            <View testID="wc-success-raffle" style={[styles.wcSuccessCard, { gap: 12 }]}>
-              <View style={styles.wcStampHeadRow}>
-                <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 16, height: 16 }} />
+            <View testID="wc-success-raffle" style={[styles.wcSuccessCard, styles.wcSuccessRaffleCard]}>
+              <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSuccessRaffleArt} />
+              <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.wcStampHeadText}>You're in the mega prize draw</Text>
-                <View style={styles.wcStampProgress}><Text style={styles.wcStampProgressText}>1 entry</Text></View>
+                <Text style={styles.wcStampCaption}>Complete your next purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
               </View>
-              <WcRaffleStamps collected={1} />
-              <Text style={styles.wcStampCaption}>Complete your next purchase for another chance to win the mega prize. Your chances double the more you transact, with no limit on entries.</Text>
             </View>
           ) : null}
           <View style={[styles.wcSuccessCard, { gap: 10 }]}>
@@ -4960,22 +4928,9 @@ const styles = StyleSheet.create({
   wcRaffleExplainerArt: { width: 92, height: 79, transform: [{ scaleX: -1 }] },
   wcRaffleExplainerKicker: { fontSize: 20, lineHeight: 26, letterSpacing: 0.3, color: text },
   wcRaffleExplainerTitle: { fontSize: 26, lineHeight: 32, fontWeight: '700', letterSpacing: 0.35, color: text },
-  wcStampCard: { width: '100%', backgroundColor: surface, borderRadius: 20, padding: 14, gap: 10, overflow: 'hidden' },
-  wcStampRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' },
-  // The track runs off the card edge so entries never read as capped.
-  wcStampTrack: { position: 'absolute', left: 58, right: -14, top: 25, height: 0, borderTopWidth: 2, borderColor: '#e5e7eb', borderStyle: 'dashed' },
-  wcStampCell: { alignItems: 'center', gap: 6, flex: 1 },
-  wcStamp: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
-  wcStampFilled: { backgroundColor: '#e5ffed', borderWidth: 1.5, borderColor: '#23a107', shadowColor: '#23a107', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
-  wcStampEmpty: { backgroundColor: '#f3f4f6', borderWidth: 1.5, borderColor: '#e5e7eb', borderStyle: 'dashed' },
-  wcStampArt: { width: 30, height: 29 },
-  wcStampNumber: { fontSize: 17, fontWeight: '700', color: '#9ca3af' },
-  wcStampLabel: { fontSize: 11, lineHeight: 14, color: muted },
-  wcStampLabelOn: { color: greenMid, fontWeight: '600' },
   wcStampCaption: { fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted },
-  wcStampHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  wcStampProgress: { marginLeft: 'auto', backgroundColor: '#f0fdf4', borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  wcStampProgressText: { fontSize: 12, lineHeight: 16, fontWeight: '700', color: greenMid },
+  wcSuccessRaffleCard: { flexDirection: 'row', alignItems: 'center', gap: 14 },
+  wcSuccessRaffleArt: { width: 62, height: 60, transform: [{ scaleX: -1 }] },
   wcStampHeadText: { fontSize: 15, lineHeight: 20, fontWeight: '700', letterSpacing: -0.24, color: greenMid },
   wcRaffleSheetKicker: { fontSize: 28, lineHeight: 36, letterSpacing: 0.36, color: text },
   wcRaffleSheetTitle: { fontSize: 34, lineHeight: 42, fontWeight: '700', letterSpacing: 0.38, color: text },
