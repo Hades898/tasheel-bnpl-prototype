@@ -1938,7 +1938,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         You’re saving <Riyal size={11} color={muted} /> {formatAmount(Math.round(wcDiscountAmountFor(months)))} off your cart total
-                        {wcPlanFee(months) > 0 ? <>, plus a <Riyal size={11} color={muted} /> {wcMoney(wcPlanFee(months))} one-time fee</> : null}
+                        {wcPlanFee(months) > 0 ? <>. A <Riyal size={11} color={muted} /> {wcMoney(wcPlanFee(months))} one-time fee applies.</> : null}
                       </Text>
                     </>
                   ) : (
@@ -1953,7 +1953,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                         ) : (
                           <>Pay <Riyal size={11} color={muted} /> {wcMoney(wcPlanMonthly(months))} per month for {months} months</>
                         )}
-                        {wcPlanFee(months) > 0 ? <>, plus a <Riyal size={11} color={muted} /> {wcMoney(wcPlanFee(months))} one-time fee</> : null}
+                        {wcPlanFee(months) > 0 ? <>. A <Riyal size={11} color={muted} /> {wcMoney(wcPlanFee(months))} one-time fee applies.</> : null}
                       </Text>
                     </>
                   )}
@@ -2003,7 +2003,11 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
           </View>
           <Progress value={1 / months} segments={months} />
           <View style={styles.reviewLine}>
-            <Text style={styles.wcDetailsDim}>Starts today</Text>
+            {wcDownFor(months) > 0 ? (
+              <Text style={styles.wcDetailsDim}><Riyal size={10} color={muted} /> {wcMoney(wcDownFor(months))} down payment today</Text>
+            ) : (
+              <Text style={styles.wcDetailsDim}>Starts today</Text>
+            )}
             <Text style={styles.wcDetailsDim}>Ends 1 {endMonth}</Text>
           </View>
           <View style={styles.reviewDivider} />
@@ -2027,9 +2031,8 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
               <View style={styles.reviewLine}><Text style={[styles.wcDetailsLabel, { color: greenMid }]}>Tasheel discount ({wcDiscountPctFor(months)}%)</Text><Text style={styles.wcFeeFree}>− <Riyal size={10} color={greenMid} /> {wcMoney(wcDiscountAmountFor(months))}</Text></View>
             </>
           ) : null}
-          {wcHasDiscount() ? (
+          {wcDownFor(months) > 0 ? (
             <>
-
               <View style={styles.reviewDivider} />
               <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Down payment</Text><Money amount={wcMoney(wcDownFor(months))} size={17} /></View>
             </>
