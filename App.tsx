@@ -1879,11 +1879,12 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <View style={{ gap: 6, flexShrink: 1 }}>
                       <Text style={styles.wcPlanRowLabel}>{m} Payments</Text>
                       {wcDownFor(m) > 0 ? (
-                        <View style={styles.wcPlanRowFeeLine}>
-                          <Riyal size={11} color={muted} />
-                          <Text style={styles.wcPlanRowNote}>
-                            {wcMoney(wcDownFor(m))} down{planFee === 0 && wcPlanApr(m) === 0 ? ' · 0% interest' : ''}
-                          </Text>
+                        <View style={{ gap: 2 }}>
+                          <View style={styles.wcPlanRowFeeLine}>
+                            <Riyal size={11} color={muted} />
+                            <Text style={styles.wcPlanRowNote}>{wcMoney(wcDownFor(m))} down payment</Text>
+                          </View>
+                          {planFee === 0 && wcPlanApr(m) === 0 ? <Text style={styles.wcPlanRowNote}>0% interest</Text> : null}
                         </View>
                       ) : planFee === 0 ? (
                         <Text style={styles.wcPlanRowNote}>0% interest</Text>
@@ -2591,7 +2592,9 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
             </View>
           </View>
           <View style={styles.wcSuccessCard}>
-            <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Plan</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Riyal size={11} /><Text style={styles.wcSuccessValue}>{months} Month x {wcMoney(wcPlanMonthly(months))}</Text></View></View>
+            <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Plan</Text><Text style={styles.wcSuccessValue}>{months} monthly payments</Text></View>
+            <View style={styles.reviewDivider} />
+            <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Monthly installment</Text><View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}><Riyal size={11} /><Text style={styles.wcSuccessValue}>{wcMoney(wcPlanMonthly(months))}</Text></View></View>
             <View style={styles.reviewDivider} />
             <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>First payment</Text><Text style={styles.wcSuccessValue}>July 1st, 2026</Text></View>
             <View style={styles.reviewDivider} />
@@ -2605,7 +2608,7 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
                 <View style={styles.wcStampProgress}><Text style={styles.wcStampProgressText}>1 entry</Text></View>
               </View>
               <WcRaffleStamps collected={1} />
-              <Text style={styles.wcStampCaption}>Today's purchase is entry #1. Every Tasheel purchase adds another entry, with no limit, so keep collecting to improve your odds.</Text>
+              <Text style={styles.wcStampCaption}>Complete your next purchase for another chance to win the mega prize. Your chances double the more you transact, with no limit on entries.</Text>
             </View>
           ) : null}
           <View style={[styles.wcSuccessCard, { gap: 10 }]}>
