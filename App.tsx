@@ -831,6 +831,13 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
   const [checkoutMethod, setCheckoutMethod] = useState<'card' | 'apple' | 'tasheel' | null>(null);
   const [howOpen, setHowOpen] = useState(false);
   const [raffleInfoOpen, setRaffleInfoOpen] = useState(false);
+  const cartCta = (
+    <View style={styles.xCartStickyBar} pointerEvents="auto">
+      <Pressable testID="wc-cart-continue" style={styles.xCartContinue} onPress={() => setRoute('wcMobile')} accessibilityRole="button" accessibilityLabel="Continue with Tasheel Finance">
+        <Text style={styles.xCartContinueText}>Continue with Tasheel Finance</Text>
+      </Pressable>
+    </View>
+  );
   return (
     <AppShell surface="checkout">
       <StatusStrip />
@@ -927,9 +934,6 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
                 <Text style={styles.xRivalLink}>Learn more</Text>
               </View>
             </View>
-            <Pressable testID="wc-cart-continue" disabled={checkoutMethod !== 'tasheel'} style={[styles.xCartContinue, checkoutMethod !== 'tasheel' && styles.xCartContinueDisabled]} onPress={() => checkoutMethod === 'tasheel' && setRoute('wcMobile')} accessibilityRole="button" accessibilityState={{ disabled: checkoutMethod !== 'tasheel' }} accessibilityLabel="Continue with Tasheel Finance">
-              <Text style={[styles.xCartContinueText, checkoutMethod !== 'tasheel' && styles.xCartContinueTextDisabled]}>{checkoutMethod === 'tasheel' ? 'Continue with Tasheel Finance' : 'Select Tasheel Finance to continue'}</Text>
-            </Pressable>
           </ScrollView>
         ) : (
           <>
@@ -955,8 +959,10 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
           </>
         )}
         <SafariCompactBar url="extra.com" />
+        {added && checkoutMethod === 'tasheel' && SHOW_FAKE_CHROME ? cartCta : null}
       </View>
       </ScreenFade>
+      {added && checkoutMethod === 'tasheel' && !SHOW_FAKE_CHROME ? <ViewportLayer>{cartCta}</ViewportLayer> : null}
       {raffleInfoOpen ? <WcRaffleExplainerSheet onClose={() => setRaffleInfoOpen(false)} /> : null}
     </AppShell>
   );
@@ -2577,7 +2583,7 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
               <ImageBackground source={figmaImageSource('wcSuccessRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcSuccessRaffleBgImage} />
               <View style={styles.wcSuccessRaffleCopy}>
                 <Text style={styles.wcSuccessRaffleTitle}>You're in the mega prize draw!</Text>
-                <Text style={styles.wcSuccessRaffleBody}>Complete a second purchase to double your chances of winning a mega prize.</Text>
+                <Text style={styles.wcSuccessRaffleBody}>Complete a second purchase to double your chances. Download the app to track your entries.</Text>
               </View>
               <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSuccessRaffleArt} />
             </View>
@@ -4937,7 +4943,7 @@ const styles = StyleSheet.create({
   wcSuccessRaffleCopy: { flex: 1, gap: 6 },
   wcSuccessRaffleTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600', letterSpacing: -0.24, color: '#ffffff' },
   wcSuccessRaffleBody: { fontSize: 12, lineHeight: 16, color: '#ffffff', opacity: 0.8 },
-  wcSuccessRaffleArt: { width: 61, height: 52, transform: [{ scaleX: -1 }] },
+  wcSuccessRaffleArt: { width: 78, height: 67, transform: [{ scaleX: -1 }] },
   wcStampHeadText: { fontSize: 15, lineHeight: 20, fontWeight: '700', letterSpacing: -0.24, color: greenMid },
   wcRaffleSheetKicker: { fontSize: 28, lineHeight: 36, letterSpacing: 0.36, color: text },
   wcRaffleSheetTitle: { fontSize: 34, lineHeight: 42, fontWeight: '700', letterSpacing: 0.38, color: text },
@@ -5083,8 +5089,9 @@ const styles = StyleSheet.create({
   xCartSectionTitle: { fontSize: 18, lineHeight: 23, fontWeight: '800', color: '#15191e', marginTop: 2 },
   xCartContinue: { minHeight: 52, borderRadius: 26, backgroundColor: '#003b18', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18, marginTop: 4 },
   xCartContinueText: { fontSize: 15, lineHeight: 20, fontWeight: '700', color: '#36ff00', textAlign: 'center' },
-  xCartContinueDisabled: { backgroundColor: '#e5e7eb' },
-  xCartContinueTextDisabled: { color: '#6b7280' },
+  xCartStickyBar: SHOW_FAKE_CHROME
+    ? { position: 'absolute', left: 0, right: 0, bottom: 96, paddingHorizontal: 16, paddingTop: 10, paddingBottom: 10, backgroundColor: 'rgba(242,246,250,0.96)' }
+    : { position: 'absolute', left: 0, right: 0, bottom: 0, paddingHorizontal: 16, paddingTop: 12, paddingBottom: 22, backgroundColor: 'rgba(242,246,250,0.96)', zIndex: 30, shadowColor: '#000', shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: -4 } },
   xCtaRow: { flexDirection: 'row', gap: 10, marginTop: 18 },
   xAddCart: { flex: 1, height: 50, borderRadius: 25, borderWidth: 1.6, borderColor: '#1467b3', alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff' },
   xAddCartDone: { borderColor: '#1e8e3e' },
