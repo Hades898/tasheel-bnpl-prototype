@@ -1881,7 +1881,9 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                       {wcDownFor(m) > 0 ? (
                         <View style={styles.wcPlanRowFeeLine}>
                           <Riyal size={11} color={muted} />
-                          <Text style={styles.wcPlanRowNote}>{wcMoney(wcDownFor(m))} down payment</Text>
+                          <Text style={styles.wcPlanRowNote}>
+                            {wcMoney(wcDownFor(m))} down{planFee === 0 && wcPlanApr(m) === 0 ? ' · 0% interest' : ''}
+                          </Text>
                         </View>
                       ) : planFee === 0 ? (
                         <Text style={styles.wcPlanRowNote}>0% interest</Text>
