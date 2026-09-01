@@ -1879,9 +1879,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
                         <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied</Text>
-                      </View>
-                      <View style={styles.wcBenefitHeadRow}>
-                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcBenefitShariaIcon} />
                         <Text style={styles.wcBenefitHead}>Sharia compliant</Text>
                       </View>
                       <View style={styles.wcBenefitBodyRow}>
@@ -1896,9 +1894,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
                         <Text style={styles.wcBenefitHead}>{wcPlanApr(months) > 0 ? `${Math.round(wcPlanApr(months) * 100)}% interest` : '0% interest'}</Text>
-                      </View>
-                      <View style={styles.wcBenefitHeadRow}>
-                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcBenefitShariaIcon} />
                         <Text style={styles.wcBenefitHead}>Sharia compliant</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
@@ -5629,7 +5625,8 @@ const styles = StyleSheet.create({
   wcBenefitPlanChip: { backgroundColor: '#f0f0f0', borderRadius: 999, paddingHorizontal: 12, paddingVertical: 6 },
   wcBenefitPlanChipText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: text, letterSpacing: -0.08 },
   wcBenefitBox: { backgroundColor: '#e5ffed', borderRadius: 16, padding: 12, gap: 6 },
-  wcBenefitHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  wcBenefitHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  wcBenefitShariaIcon: { width: 15, height: 15, marginLeft: 4 },
   wcBenefitHead: { fontSize: 13, lineHeight: 17, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
   wcBenefitBodyRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   wcBenefitBody: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08 },
