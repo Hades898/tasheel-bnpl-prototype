@@ -1554,9 +1554,11 @@ const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(mo
 // Fee and profit schedule, identical on both products: 2-3 months are free,
 // 4 and 6 carry the 1% Murabaha fee at 0% interest, and 9 months and longer
 // carry that fee plus a profit rate.
-// PLACEHOLDER: confirm the long-tenure profit rate before this demo is shown.
+// PLACEHOLDER: confirm the profit rate before this demo is shown.
 const WC_LONG_TENURE_APR = 0.12;
-const wcPlanApr = (months: number) => (months >= 9 ? WC_LONG_TENURE_APR : 0);
+// BNPL stays interest-free on every plan it offers. BNPL Plus charges profit
+// from the 4-month plan onward; its 2- and 3-month plans stay interest-free.
+const wcPlanApr = (months: number) => (wcActiveProduct === 'plus' && months >= 4 ? WC_LONG_TENURE_APR : 0);
 const wcPlanFee = (months: number) => (months >= 4 ? Math.round(wcPrincipalFor(months) * 0.01 * 100) / 100 : 0);
 const wcPlanInterest = (months: number) => Math.round(wcPrincipalFor(months) * wcPlanApr(months) * (months / 12) * 100) / 100;
 const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months) + wcPlanInterest(months)) * 100) / 100;
