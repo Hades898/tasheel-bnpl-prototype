@@ -1509,7 +1509,7 @@ let wcActiveFlow: WcFlow = 'existing';
 const configureWcOffer = (product: WcProduct, flow: WcFlow) => {
   wcActiveFlow = flow;
   wcActiveProduct = product;
-  wcActiveTenures = product === 'bnpl' ? (flow === 'new' ? [2, 3, 4, 6] : [2, 3, 4]) : [2, 3, 4, 6, 9, 12, 24, 36];
+  wcActiveTenures = product === 'bnpl' ? [2, 3, 4, 6] : [2, 3, 4, 6, 9, 12, 24, 36];
 };
 // 2 and 3 months are free; 4 months and longer carry a 1% Murabaha fee on the
 // financed principal. Every tenure has a rate, so no plan is ever unselectable.
@@ -1549,17 +1549,16 @@ const wcPrincipalFor = (months: number) => {
   return Math.min(wcOrderTotalFor(months), WC_AVAILABLE_LIMIT);
 };
 const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(months) - wcPrincipalFor(months)) * 100) / 100);
-const wcPlanFee = (months: number) => {
-  // BNPL is fee-free apart from the returning-customer 4-month plan, which
-  // carries the same 1% Murabaha fee as the Plus schedule.
-  if (wcActiveProduct === 'bnpl') {
-    if (wcActiveFlow === 'existing' && months === 4) return Math.round(wcPrincipalFor(months) * 0.01 * 100) / 100;
-    return 0;
-  }
-  return Math.round(wcPrincipalFor(months) * wcPlanFeeRate(months) * 100) / 100;
-};
-const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months)) * 100) / 100;
-const wcPlanMonthly = (months: number) => Math.round(((wcPrincipalFor(months) + wcPlanFee(months)) / months) * 100) / 100;
+// Fee and profit schedule, identical on both products: 2-3 months are free,
+// 4 and 6 carry the 1% Murabaha fee at 0% interest, and 9 months and longer
+// carry that fee plus a profit rate.
+// PLACEHOLDER: confirm the long-tenure profit rate before this demo is shown.
+const WC_LONG_TENURE_APR = 0.12;
+const wcPlanApr = (months: number) => (months >= 9 ? WC_LONG_TENURE_APR : 0);
+const wcPlanFee = (months: number) => (months >= 4 ? Math.round(wcPrincipalFor(months) * 0.01 * 100) / 100 : 0);
+const wcPlanInterest = (months: number) => Math.round(wcPrincipalFor(months) * wcPlanApr(months) * (months / 12) * 100) / 100;
+const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wcPlanFee(months) + wcPlanInterest(months)) * 100) / 100;
+const wcPlanMonthly = (months: number) => Math.round(((wcPrincipalFor(months) + wcPlanFee(months) + wcPlanInterest(months)) / months) * 100) / 100;
 // Plus 2-3 month plans collect only the down payment today; every installment
 // lands on the following months. All other plans include the first installment.
 const wcIsShortPlusPlan = (months: number) => wcActiveProduct !== 'bnpl' && months <= 3;
@@ -1813,11 +1812,13 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                           <Text style={styles.wcPlanRowNote}>{wcMoney(wcDownFor(m))} down payment</Text>
                         </View>
                       ) : planFee === 0 ? (
-                        <Text style={styles.wcPlanRowNote}>No interest. No fees</Text>
+                        <Text style={styles.wcPlanRowNote}>0% interest</Text>
                       ) : (
                         <View style={styles.wcPlanRowFeeLine}>
                           <Riyal size={11} color={muted} />
-                          <Text style={styles.wcPlanRowNote}>{wcMoney(planFee)} one-time fee</Text>
+                          <Text style={styles.wcPlanRowNote}>
+                            {wcMoney(planFee)} fee{wcPlanApr(m) > 0 ? ` · ${Math.round(wcPlanApr(m) * 100)}% interest` : ' · 0% interest'}
+                          </Text>
                         </View>
                       )}
                     </View>
@@ -1876,7 +1877,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied</Text>
+                        <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied · Sharia compliant</Text>
                       </View>
                       <View style={styles.wcBenefitBodyRow}>
                         <Text style={styles.wcBenefitBody}>You’re saving</Text>
@@ -1889,7 +1890,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>{wcPlanFee(months) > 0 ? '0% interest.' : '0% interest. 0% fees.'}</Text>
+                        <Text style={styles.wcBenefitHead}>{wcPlanApr(months) > 0 ? `${Math.round(wcPlanApr(months) * 100)}% interest · Sharia compliant` : '0% interest · Sharia compliant'}</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
@@ -4559,7 +4560,7 @@ export default function App() {
     setWcMonths(product === 'bnpl' ? 3 : 4);
     setRoute('checkout');
   };
-  const bnplMax = wcFlow === 'new' ? 6 : 4;
+  const bnplMax = 6;
   const bnplMonthly = wcMoney(wcPlanMonthly(bnplMax));
   const ob = (value: React.ReactNode) => <Text style={styles.xOfferBodyBold}>{value}</Text>;
   // Titles and bodies are kept short enough to hold one line on a 390pt phone.
