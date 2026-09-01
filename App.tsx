@@ -1936,22 +1936,16 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
                         <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied</Text>
                       </View>
-                      <View style={styles.wcBenefitBodyRow}>
-                        <Text style={styles.wcBenefitBody}>You’re saving</Text>
-                        <Riyal size={11} color={muted} />
-                        <Text style={styles.wcBenefitBody}>{formatAmount(Math.round(wcDiscountAmountFor(months)))}</Text>
-                        <Text style={styles.wcBenefitBody}>off your cart total</Text>
-                      </View>
+                      <Text style={styles.wcBenefitBody}>
+                        You’re saving <Riyal size={11} color={muted} /> {formatAmount(Math.round(wcDiscountAmountFor(months)))} off your cart total
+                        {wcPlanFee(months) > 0 ? <>, plus a <Riyal size={11} color={muted} /> {wcMoney(wcPlanFee(months))} one-time fee</> : null}
+                      </Text>
                     </>
                   ) : (
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>
-                          {wcPlanFee(months) === 0
-                            ? 'Zero fees · 0% interest'
-                            : <><Riyal size={11} color={greenMid} /> {wcMoney(wcPlanFee(months))} fee · 0% interest</>}
-                        </Text>
+                        <Text style={styles.wcBenefitHead}>{wcPlanFee(months) === 0 ? 'Zero fees · 0% interest' : '0% interest'}</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
@@ -1959,6 +1953,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                         ) : (
                           <>Pay <Riyal size={11} color={muted} /> {wcMoney(wcPlanMonthly(months))} per month for {months} months</>
                         )}
+                        {wcPlanFee(months) > 0 ? <>, plus a <Riyal size={11} color={muted} /> {wcMoney(wcPlanFee(months))} one-time fee</> : null}
                       </Text>
                     </>
                   )}
@@ -2582,7 +2577,6 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
             <View style={styles.reviewDivider} />
             <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Reference</Text><Text style={styles.wcSuccessValue}>{WC_ORDER_REFERENCE}</Text></View>
           </View>
-          {wcActiveFlow === 'existing' ? (
             <View testID="wc-success-raffle" style={styles.wcSuccessRaffleCard}>
               <ImageBackground source={figmaImageSource('wcSuccessRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcSuccessRaffleBgImage} />
               <View style={styles.wcSuccessRaffleCopy}>
@@ -2591,7 +2585,6 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
               </View>
               <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSuccessRaffleArt} />
             </View>
-          ) : null}
           {wcActiveFlow === 'new' ? (
           <View style={[styles.wcSuccessCard, { gap: 10 }]}>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
