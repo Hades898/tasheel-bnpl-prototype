@@ -1947,7 +1947,11 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>{wcPlanFee(months) === 0 ? 'Zero fees · 0% interest' : '0% interest'}</Text>
+                        <Text style={styles.wcBenefitHead}>
+                          {wcPlanFee(months) === 0
+                            ? 'Zero fees · 0% interest'
+                            : <><Riyal size={11} color={greenMid} /> {wcMoney(wcPlanFee(months))} fee · 0% interest</>}
+                        </Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
