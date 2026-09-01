@@ -2364,9 +2364,9 @@ function WcPayment({ setRoute, months, setMonths }: { setRoute: (r: RouteKey) =>
   const [agreementAccepted, setAgreementAccepted] = useState(false);
   const [sheet, setSheet] = useState<null | 'details' | 'schedule' | 'why' | 'leave' | 'murabaha'>(null);
   const today = wcPlanToday(months);
-  // The Murabaha agreement only applies to BNPL Plus financing; plain BNPL
-  // (0 fees, 0 interest) has no Murabaha contract to accept.
-  const needsMurabaha = wcActiveProduct === 'plus';
+  // The Murabaha agreement covers financed plans only. Plain BNPL and the
+  // Plus 2- and 3-month plans carry no fee or profit, so there is no contract.
+  const needsMurabaha = wcActiveProduct === 'plus' && months >= 4;
   const canPay = method !== null && (!needsMurabaha || agreementAccepted);
   const payCta = (
     <View style={styles.wcStickyCtaBar} pointerEvents="auto">
