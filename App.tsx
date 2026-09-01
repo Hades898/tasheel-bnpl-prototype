@@ -1685,7 +1685,7 @@ function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
                 <Text style={styles.wcRaffleExplainerKicker}>You could win</Text>
                 <Text style={styles.wcRaffleExplainerTitle}>A Mega Prize!</Text>
               </View>
-              <Text style={styles.wcRaffleSheetBody}>Complete your purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
+              <Text style={styles.wcRaffleSheetBody}>Complete this purchase to enter the draw for a mega prize, and double your chances with every purchase you make.</Text>
             </View>
           </View>
           <Pressable testID="wc-raffle-explainer-cta" style={[styles.wcGreenCta, styles.wcRaffleSheetCta]} onPress={dismiss} accessibilityRole="button">
@@ -1722,7 +1722,7 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
                 <Text style={styles.wcRaffleSheetTitle}>Could Be Free!</Text>
               </View>
               <View style={{ width: '100%' }}>
-                <Text style={styles.wcRaffleSheetBody}>Complete your purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
+                <Text style={styles.wcRaffleSheetBody}>Complete this purchase to enter the draw for a mega prize, and double your chances with every purchase you make.</Text>
               </View>
             </View>
           </View>
@@ -2575,7 +2575,7 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
               <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSuccessRaffleArt} />
               <View style={{ flex: 1, gap: 4 }}>
                 <Text style={styles.wcStampHeadText}>You're in the mega prize draw</Text>
-                <Text style={styles.wcStampCaption}>Complete your next purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
+                <Text style={styles.wcStampCaption}>That's your first entry. Complete a second purchase to double your chances of winning a mega prize.</Text>
               </View>
             </View>
           ) : null}
