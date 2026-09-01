@@ -1818,7 +1818,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                         <View style={styles.wcPlanRowFeeLine}>
                           <Riyal size={11} color={muted} />
                           <Text style={styles.wcPlanRowNote}>
-                            {wcMoney(planFee)} fee{wcPlanApr(m) > 0 ? ` · ${Math.round(wcPlanApr(m) * 100)}% interest` : ' · 0% interest'}
+                            {wcMoney(planFee)} fee{wcPlanApr(m) > 0 ? '' : ' · 0% interest'}
                           </Text>
                         </View>
                       )}
@@ -1895,7 +1895,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        <Text style={styles.wcBenefitHead}>{wcPlanApr(months) > 0 ? `${Math.round(wcPlanApr(months) * 100)}% interest` : '0% interest'}</Text>
+                        <Text style={styles.wcBenefitHead}>0% interest</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
@@ -1994,10 +1994,16 @@ function WcPlanDetailsSheet({ months, onClose, onViewSchedule, onContinue }: { m
             {fee === 0 ? <Text style={styles.wcDetailsDim}>No fees</Text> : <Money amount={wcMoney(fee)} size={17} />}
             {feeTipOpen ? (
               <View style={styles.wcFeeTip} pointerEvents="none">
-                <Text style={styles.wcFeeTipText}>{fee === 0 ? 'This plan has no fees and no interest.' : `Plans of 4 months and longer carry a 1% Murabaha fee on the financed amount. It is split equally across the ${months} installments.`}</Text>
+                <Text style={styles.wcFeeTipText}>{fee === 0 ? 'This plan has no fees and no interest.' : `Plans of 4 months and longer carry a 1% Murabaha fee on the financed amount. It is split equally across the ${months} installments.${wcPlanInterest(months) > 0 ? ` This plan also carries a ${Math.round(wcPlanApr(months) * 100)}% annual profit rate, included in the total below.` : ''}`}</Text>
               </View>
             ) : null}
           </View>
+          {wcPlanInterest(months) > 0 ? (
+            <>
+              <View style={styles.reviewDivider} />
+              <View style={styles.reviewLine}><Text style={styles.wcDetailsLabel}>Cost of financing</Text><Money amount={wcMoney(wcPlanInterest(months))} size={17} /></View>
+            </>
+          ) : null}
           <View style={styles.reviewDivider} />
           <View style={styles.reviewLine}><Text style={styles.wcDetailsStrong}>Total</Text><Money amount={wcMoney(wcPlanTotal(months))} size={17} weight="700" /></View>
         </View>
