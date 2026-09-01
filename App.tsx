@@ -1682,9 +1682,6 @@ function WcRaffleStamps({ collected }: { collected: number }) {
           </View>
         );
       })}
-      <View style={styles.wcStampMoreCell}>
-        <Text style={styles.wcStampMore}>···</Text>
-      </View>
     </View>
   );
 }
@@ -2565,7 +2562,7 @@ function WcProcessing({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 // handoff is an explicit tap rather than a timed redirect, because iOS only
 // honours a custom-scheme navigation that comes from a real user gesture.
 function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKey) => void }) {
-  const [redirectIn, setRedirectIn] = useState(10);
+  const [redirectIn, setRedirectIn] = useState(15);
   useEffect(() => {
     const tick = setInterval(() => setRedirectIn(v => Math.max(0, v - 1)), 1000);
     return () => clearInterval(tick);
@@ -4958,11 +4955,10 @@ const styles = StyleSheet.create({
   wcRaffleExplainerArt: { width: 92, height: 79, transform: [{ scaleX: -1 }] },
   wcRaffleExplainerKicker: { fontSize: 20, lineHeight: 26, letterSpacing: 0.3, color: text },
   wcRaffleExplainerTitle: { fontSize: 26, lineHeight: 32, fontWeight: '700', letterSpacing: 0.35, color: text },
-  wcStampCard: { width: '100%', backgroundColor: surface, borderRadius: 20, padding: 14, gap: 10 },
+  wcStampCard: { width: '100%', backgroundColor: surface, borderRadius: 20, padding: 14, gap: 10, overflow: 'hidden' },
   wcStampRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', position: 'relative' },
-  wcStampTrack: { position: 'absolute', left: 58, right: 12, top: 25, height: 0, borderTopWidth: 2, borderColor: '#e5e7eb', borderStyle: 'dashed' },
-  wcStampMoreCell: { width: 26, height: 52, alignItems: 'center', justifyContent: 'center' },
-  wcStampMore: { fontSize: 18, lineHeight: 20, fontWeight: '700', color: '#c3c8cf' },
+  // The track runs off the card edge so entries never read as capped.
+  wcStampTrack: { position: 'absolute', left: 58, right: -14, top: 25, height: 0, borderTopWidth: 2, borderColor: '#e5e7eb', borderStyle: 'dashed' },
   wcStampCell: { alignItems: 'center', gap: 6, flex: 1 },
   wcStamp: { width: 52, height: 52, borderRadius: 26, alignItems: 'center', justifyContent: 'center' },
   wcStampFilled: { backgroundColor: '#e5ffed', borderWidth: 1.5, borderColor: '#23a107', shadowColor: '#23a107', shadowOpacity: 0.25, shadowRadius: 12, shadowOffset: { width: 0, height: 4 } },
