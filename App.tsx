@@ -2587,11 +2587,12 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
               <ImageBackground source={figmaImageSource('wcSuccessRaffleBg')} resizeMode="cover" style={StyleSheet.absoluteFill} imageStyle={styles.wcSuccessRaffleBgImage} />
               <View style={styles.wcSuccessRaffleCopy}>
                 <Text style={styles.wcSuccessRaffleTitle}>You're in the mega prize draw!</Text>
-                <Text style={styles.wcSuccessRaffleBody}>Complete a second purchase to double your chances. Download the app to track your entries.</Text>
+                <Text style={styles.wcSuccessRaffleBody}>Complete your next purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
               </View>
               <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSuccessRaffleArt} />
             </View>
           ) : null}
+          {wcActiveFlow === 'new' ? (
           <View style={[styles.wcSuccessCard, { gap: 10 }]}>
             <View style={{ flexDirection: 'row', gap: 8, alignItems: 'flex-start' }}>
               <TasheelMark size={26} />
@@ -2605,6 +2606,7 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
               <Image source={figmaImageSource('wcBadgeGooglePlay')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 91, height: 27 }} />
             </View>
           </View>
+          ) : null}
           <Text testID="wc-success-redirect" style={styles.wcSuccessRedirect}>Redirecting to merchant in {redirectIn}s…</Text>
         </View>
         <View style={styles.wcObBottom}>
