@@ -1544,10 +1544,10 @@ const wcDiscountAmountFor = (months: number) => Math.round(wcCartTotalNow() * wc
 const wcOrderTotalFor = (months: number) => Math.round((wcCartTotalNow() - wcDiscountAmountFor(months)) * 100) / 100;
 const wcPrincipalFor = (months: number) => {
   if (wcActiveProduct === 'bnpl') return wcOrderTotalFor(months);
-  // Plus plans of 2 to 6 months take the available-limit amount up front and
-  // finance only the excess (7,000 cart → 5,000 down + 2×1,000). From 9 months
-  // the whole order is split into equal installments with no down payment.
-  if (months <= 6) return Math.max(0, wcOrderTotalFor(months) - WC_AVAILABLE_LIMIT);
+  // Plus plans of 2 and 3 months take the available-limit amount up front and
+  // split the excess equally (7,000 order → 5,000 down + 2×1,000 or 3×666.67).
+  // From 4 months the whole order is split into equal installments.
+  if (months <= 3) return Math.max(0, wcOrderTotalFor(months) - WC_AVAILABLE_LIMIT);
   return wcOrderTotalFor(months);
 };
 const wcDownFor = (months: number) => Math.max(0, Math.round((wcOrderTotalFor(months) - wcPrincipalFor(months)) * 100) / 100);
@@ -1563,7 +1563,7 @@ const wcPlanTotal = (months: number) => Math.round((wcOrderTotalFor(months) + wc
 const wcPlanMonthly = (months: number) => Math.round(((wcPrincipalFor(months) + wcPlanFee(months) + wcPlanInterest(months)) / months) * 100) / 100;
 // Plus 2-3 month plans collect only the down payment today; every installment
 // lands on the following months. All other plans include the first installment.
-const wcIsShortPlusPlan = (months: number) => wcActiveProduct !== 'bnpl' && months <= 6;
+const wcIsShortPlusPlan = (months: number) => wcActiveProduct !== 'bnpl' && months <= 3;
 const wcInstallmentsAfterToday = (months: number) => (wcIsShortPlusPlan(months) ? months : months - 1);
 const wcPlanToday = (months: number) => Math.round((wcDownFor(months) + (wcIsShortPlusPlan(months) ? 0 : wcPlanMonthly(months))) * 100) / 100;
 // Deep link into the native Tasheel SwiftUI app. Nothing happens if the app is
@@ -1874,13 +1874,15 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                   <View style={styles.wcBenefitPlanChip}><Text style={styles.wcBenefitPlanChipText}>{months} Payments</Text></View>
                 </View>
                 <View style={styles.wcBenefitBox}>
+                  <View style={styles.wcBenefitShariaTag} pointerEvents="none">
+                    <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
+                    <Text style={styles.wcBenefitShariaText}>Sharia compliant</Text>
+                  </View>
                   {wcDiscountAmountFor(months) > 0 ? (
                     <>
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
                         <Text style={styles.wcBenefitHead}>{wcDiscountPctFor(months)}% Discount applied</Text>
-                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcBenefitShariaIcon} />
-                        <Text style={styles.wcBenefitHead}>Sharia compliant</Text>
                       </View>
                       <View style={styles.wcBenefitBodyRow}>
                         <Text style={styles.wcBenefitBody}>You’re saving</Text>
@@ -1894,8 +1896,6 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                       <View style={styles.wcBenefitHeadRow}>
                         <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
                         <Text style={styles.wcBenefitHead}>{wcPlanApr(months) > 0 ? `${Math.round(wcPlanApr(months) * 100)}% interest` : '0% interest'}</Text>
-                        <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcBenefitShariaIcon} />
-                        <Text style={styles.wcBenefitHead}>Sharia compliant</Text>
                       </View>
                       <Text style={styles.wcBenefitBody}>
                         {wcDownFor(months) > 0 ? (
@@ -5626,7 +5626,8 @@ const styles = StyleSheet.create({
   wcBenefitPlanChipText: { fontSize: 13, lineHeight: 18, fontWeight: '600', color: text, letterSpacing: -0.08 },
   wcBenefitBox: { backgroundColor: '#e5ffed', borderRadius: 16, padding: 12, gap: 6 },
   wcBenefitHeadRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  wcBenefitShariaIcon: { width: 15, height: 15, marginLeft: 4 },
+  wcBenefitShariaTag: { position: 'absolute', top: 12, right: 12, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  wcBenefitShariaText: { fontSize: 12, lineHeight: 16, fontWeight: '600', letterSpacing: -0.08, color: greenMid },
   wcBenefitHead: { fontSize: 13, lineHeight: 17, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
   wcBenefitBodyRow: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   wcBenefitBody: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08 },
