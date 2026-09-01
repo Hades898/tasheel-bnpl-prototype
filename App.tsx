@@ -4563,29 +4563,37 @@ export default function App() {
   const bnplMonthly = wcMoney(wcPlanMonthly(bnplMax));
   const ob = (value: React.ReactNode) => <Text style={styles.xOfferBodyBold}>{value}</Text>;
   // Titles and bodies are kept short enough to hold one line on a 390pt phone.
-  const tasheelOffer = wcFlow === 'existing'
+  const plusMonthly = wcMoney(wcPlanMonthly(36));
+  const tasheelOffer = wcProduct === 'bnpl'
+    ? wcFlow === 'existing'
+      ? {
+          title: 'You Could Get your full payment for Free',
+          body: <>Pay {ob(`SAR ${bnplMonthly}`)} monthly over {ob(`${bnplMax} payments`)}, {ob('0%')} interest and get a chance to have it for free</>,
+          planMax: bnplMax,
+          planMin: 2,
+          aria: `Pay SAR ${bnplMonthly} monthly over ${bnplMax} payments at 0 percent interest, and get a chance to have it for free`,
+        }
+      : {
+          title: `Split up to ${bnplMax} payments, 0% interest`,
+          body: <>Pay {ob(`SAR ${bnplMonthly}`)} monthly over {ob(`${bnplMax} payments`)}, {ob('0%')} interest</>,
+          planMax: bnplMax,
+          planMin: 2,
+          aria: `Split up to ${bnplMax} payments at 0 percent interest: pay SAR ${bnplMonthly} monthly`,
+        }
+    : wcFlow === 'existing'
     ? {
-        // Returning customers lead with the lucky draw on both products.
-        title: 'Your remaining payments, on us.',
-        body: <>Buy today to enter the draw. Win and Tasheel settles {ob('100%')} of what you still owe on this purchase.</>,
-        planMax: wcProduct === 'bnpl' ? bnplMax : 36,
-        planMin: 2,
-        aria: `Continue with Tasheel Finance: buy today to enter the draw, and if you win Tasheel settles 100 percent of what you still owe on this purchase`,
-      }
-    : wcProduct === 'bnpl'
-    ? {
-        title: 'Split your purchase. Pay nothing extra.',
-        body: <>Pay from {ob(bnplMonthly)} a month over up to {ob(`${bnplMax} months`)}. {ob('0%')} interest, {ob('0')} fees.</>,
-        planMax: bnplMax,
-        planMin: 2,
-        aria: `Split your purchase with Tasheel: ${bnplMonthly} a month for up to ${bnplMax} months at 0 percent interest with 0 fees`,
-      }
-    : {
-        title: `Split your purchase. Save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}.`,
-        body: <>Save up to {ob('10%')} off your cart and pay over up to {ob('36 months')}.</>,
+        title: 'Up to 36 Months to Pay',
+        body: <>Pay {ob(`SAR ${plusMonthly}`)} monthly over up to {ob('36 payments')} and get a chance to have it for free</>,
         planMax: 36,
         planMin: 2,
-        aria: `Continue with Tasheel Finance: save up to ${wcMoney(WC_CART_TOTAL * WC_PLUS_MAX_DISCOUNT_RATE)}, up to 10 percent off your cart, pay over up to 36 months`,
+        aria: `Pay SAR ${plusMonthly} monthly over up to 36 payments, and get a chance to have it for free`,
+      }
+    : {
+        title: 'Split Up to 36 and Save Up to 10%',
+        body: <>Pay {ob(`SAR ${plusMonthly}`)} monthly up to {ob('36 payments')}, plus up to {ob('10%')} instant discount</>,
+        planMax: 36,
+        planMin: 2,
+        aria: `Split up to 36 payments and save up to 10 percent: pay SAR ${plusMonthly} monthly with up to a 10 percent instant discount`,
       };
   if (route === 'gate') return <DemoGate startDemo={startDemo} />;
   if (route === 'wcMobile') return <WcMobile setRoute={setRoute} phone={wcPhone} setPhone={setWcPhone} requireConsent />;
