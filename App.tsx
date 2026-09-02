@@ -278,6 +278,7 @@ const figmaAssets = {
   wcRaffleBg: '/figma/wcRaffleBg.png',
   wcRaffleBox: '/figma/wcRaffleBox.png',
   wcRaffleBoxSheet: '/figma/wcRaffleBoxSheet.png',
+  wcRaffleGift: '/figma/wcRaffleGift.png',
   // Success draw banner (Figma 5005:50850).
   wcSuccessRaffleBg: '/figma/wcSuccessRaffleBg.png',
   // Sharia compliance badge (Figma 4868:76660), tinted to the brand green.
@@ -1685,7 +1686,7 @@ function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
         <View style={styles.sheetGrabber} />
         <View style={[styles.wcRaffleSheetContent, { gap: compact ? 12 : 18 }]}>
           <View style={{ gap: compact ? 8 : 12, width: '100%' }}>
-            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={[styles.wcRaffleExplainerArt, compact && styles.wcRaffleArtCompact]} />
+            <Image source={figmaImageSource('wcRaffleGift')} resizeMode="contain" accessibilityIgnoresInvertColors style={[styles.wcRaffleExplainerArt, compact && styles.wcRaffleArtCompact]} />
             <View style={{ gap: compact ? 6 : 8, width: '100%' }}>
               <View style={{ width: '100%' }}>
                 <Text style={styles.wcRaffleExplainerKicker}>You could win</Text>
@@ -1723,7 +1724,7 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
         <View style={styles.sheetGrabber} />
         <View style={[styles.wcRaffleSheetContent, compact && { gap: 14 }]}>
           <View style={{ gap: compact ? 10 : 16, width: '100%' }}>
-            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={[styles.wcRaffleSheetArt, compact && styles.wcRaffleArtCompact]} />
+            <Image source={figmaImageSource('wcRaffleGift')} resizeMode="contain" accessibilityIgnoresInvertColors style={[styles.wcRaffleSheetArt, compact && styles.wcRaffleArtCompact]} />
             <View style={{ gap: compact ? 8 : 12, width: '100%' }}>
               <View style={{ width: '100%' }}>
                 <Text style={styles.wcRaffleSheetKicker}>Your Purchase</Text>
@@ -1752,6 +1753,13 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
   // Tapping the grabber tucks the benefits away so the plan list is readable again;
   // the actions stay docked so the user can still confirm from the collapsed sheet.
   const [benefitsCollapsed, setBenefitsCollapsed] = useState(false);
+  const collapse = useRef(new Animated.Value(1)).current; // 1 = benefits shown
+  const [benefitsHeight, setBenefitsHeight] = useState(0);
+  const toggleBenefits = () => {
+    const next = !benefitsCollapsed;
+    setBenefitsCollapsed(next);
+    Animated.timing(collapse, { toValue: next ? 0 : 1, duration: 260, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: false }).start();
+  };
   const [leavePromptOpen, setLeavePromptOpen] = useState(false);
   const [raffleOpen, setRaffleOpen] = useState(!wcRaffleIntroSeen && wcActiveFlow === 'existing');
   const rise = useRef(new Animated.Value(0)).current;
@@ -1788,6 +1796,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
     setMonths(m);
     scrollToPlan(m);
     setBenefitsCollapsed(false);
+    collapse.setValue(1);
     if (!picked) {
       setPicked(true);
       rise.setValue(0);
@@ -1923,10 +1932,10 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
         {picked && !leavePromptOpen && !raffleOpen ? (
           <ViewportLayer>
             <View style={styles.wcBenefitLayer} pointerEvents="box-none">
-              <Animated.View style={[styles.wcBenefitSheet, benefitsCollapsed && styles.wcBenefitSheetCollapsed, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
+              <Animated.View style={[styles.wcBenefitSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
                 <Pressable
                   testID="wc-benefit-grabber"
-                  onPress={() => setBenefitsCollapsed(v => !v)}
+                  onPress={toggleBenefits}
                   hitSlop={14}
                   style={styles.wcBenefitGrabberHit}
                   accessibilityRole="button"
@@ -1934,13 +1943,18 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                 >
                   <View style={styles.sheetGrabber} />
                 </Pressable>
-                {benefitsCollapsed ? null : (
+                <Animated.View
+                  style={[
+                    styles.wcBenefitCollapsible,
+                    { opacity: collapse },
+                    benefitsHeight > 0 ? { height: collapse.interpolate({ inputRange: [0, 1], outputRange: [0, benefitsHeight] }) } : null,
+                  ]}
+                >
+                <View onLayout={e => setBenefitsHeight(e.nativeEvent.layout.height)} style={styles.wcBenefitCollapsibleInner}>
                 <View style={styles.wcBenefitTitleRow}>
                   <Text style={styles.wcBenefitTitle}>Your plan benefits</Text>
                   <View style={styles.wcBenefitPlanChip}><Text style={styles.wcBenefitPlanChipText}>{months} Payments</Text></View>
                 </View>
-                )}
-                {benefitsCollapsed ? null : (
                 <View style={styles.wcBenefitBox}>
                   <View style={styles.wcBenefitShariaTag} pointerEvents="none">
                     <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
@@ -1974,7 +1988,8 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     </>
                   )}
                 </View>
-                )}
+                </View>
+                </Animated.View>
                 <View style={styles.wcBenefitButtons}>
                   <Pressable testID="wc-plan-details" style={[styles.wcGreyCta, { flex: 1, width: undefined }]} onPress={() => setSheet('details')} accessibilityRole="button">
                     <Text style={styles.wcGreyCtaText}>View details</Text>
@@ -2603,7 +2618,7 @@ function WcSuccess({ months, setRoute }: { months: number; setRoute: (r: RouteKe
                 <Text style={styles.wcSuccessRaffleTitle}>You're in the mega prize draw!</Text>
                 <Text style={styles.wcSuccessRaffleBody}>Complete your next purchase for a chance to win a mega prize, and double your chances the more you transact.</Text>
               </View>
-              <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSuccessRaffleArt} />
+              <Image source={figmaImageSource('wcRaffleGift')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcSuccessRaffleArt} />
             </View>
           {wcActiveFlow === 'new' ? (
           <View style={[styles.wcSuccessCard, { gap: 10 }]}>
@@ -4953,20 +4968,20 @@ const styles = StyleSheet.create({
   wcRaffleSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: canvas, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingTop: 5, paddingHorizontal: 16, paddingBottom: 104, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 37.5, shadowOffset: { width: 0, height: -15 } },
   wcRaffleSheetContent: { width: '100%', gap: 24, alignItems: 'flex-start' },
   wcRaffleSheetCompact: { bottom: -56, paddingBottom: 74 },
-  wcRaffleArtCompact: { width: 64, height: 55 },
+  wcRaffleArtCompact: { width: 86, height: 101 },
   wcRaffleTitleCompact: { fontSize: 24, lineHeight: 30 },
-  wcRaffleSheetArt: { width: 117, height: 100, transform: [{ scaleX: -1 }] },
+  wcRaffleSheetArt: { width: 148, height: 174 },
   wcRaffleSheetCta: { width: '100%' },
-  wcRaffleExplainerArt: { width: 92, height: 79, transform: [{ scaleX: -1 }] },
+  wcRaffleExplainerArt: { width: 132, height: 155 },
   wcRaffleExplainerKicker: { fontSize: 20, lineHeight: 26, letterSpacing: 0.3, color: text },
   wcRaffleExplainerTitle: { fontSize: 26, lineHeight: 32, fontWeight: '700', letterSpacing: 0.35, color: text },
   wcStampCaption: { fontSize: 13, lineHeight: 18, letterSpacing: -0.08, color: muted },
-  wcSuccessRaffleCard: { borderRadius: 16, overflow: 'hidden', padding: 12, flexDirection: 'row', alignItems: 'flex-end', gap: 12, backgroundColor: '#1b2b33' },
+  wcSuccessRaffleCard: { borderRadius: 16, overflow: 'hidden', padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#1b2b33' },
   wcSuccessRaffleBgImage: { borderRadius: 16 },
   wcSuccessRaffleCopy: { flex: 1, gap: 6 },
   wcSuccessRaffleTitle: { fontSize: 15, lineHeight: 20, fontWeight: '600', letterSpacing: -0.24, color: '#ffffff' },
   wcSuccessRaffleBody: { fontSize: 12, lineHeight: 16, color: '#ffffff', opacity: 0.8 },
-  wcSuccessRaffleArt: { width: 78, height: 67, transform: [{ scaleX: -1 }] },
+  wcSuccessRaffleArt: { width: 104, height: 122, flexShrink: 0 },
   wcStampHeadText: { fontSize: 15, lineHeight: 20, fontWeight: '700', letterSpacing: -0.24, color: greenMid },
   wcRaffleSheetKicker: { fontSize: 28, lineHeight: 36, letterSpacing: 0.36, color: text },
   wcRaffleSheetTitle: { fontSize: 34, lineHeight: 42, fontWeight: '700', letterSpacing: 0.38, color: text },
@@ -5728,7 +5743,8 @@ const styles = StyleSheet.create({
   wcPlanPrice: { fontSize: 22, lineHeight: 28, fontWeight: '700', color: text, letterSpacing: 0.2 },
   wcPlanPriceUnit: { fontSize: 15, lineHeight: 22, color: muted, letterSpacing: -0.3, marginLeft: 1 },
   wcBenefitLayer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 30 },
-  wcBenefitSheetCollapsed: { paddingTop: 2, gap: 8 },
+  wcBenefitCollapsible: { width: '100%', overflow: 'hidden' },
+  wcBenefitCollapsibleInner: { width: '100%', gap: 12, paddingBottom: 12 },
   wcBenefitGrabberHit: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 6 },
   wcBenefitSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 108, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
   wcBenefitTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
