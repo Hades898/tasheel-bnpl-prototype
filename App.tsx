@@ -656,7 +656,7 @@ function AppShell({ children, scroll = true, surface = 'app' }: { children: Reac
     // proportions on wider phones. zoom affects layout (unlike transform), and
     // width-only scaling keeps the page stable when the keyboard resizes the
     // viewport. Fixed frames keep their 830 design height and scroll if taller.
-    const zoom = width / designWidth;
+    const zoom = viewportZoom(width, height);
     const inner = scroll
       ? children
       : <View style={{ width: designWidth, height: designHeight, overflow: 'hidden' }}>{children}</View>;
@@ -665,7 +665,7 @@ function AppShell({ children, scroll = true, surface = 'app' }: { children: Reac
         <StatusBar style="dark" />
         <ScrollView style={{ width: '100%', flex: 1 }} contentContainerStyle={styles.outerScroll} showsVerticalScrollIndicator={false}>
           <View {...surfaceProps} style={[styles.phone, { maxWidth: width }, scroll ? styles.phoneScrollable : null]}>
-            {createElement('div', { style: { zoom, minHeight: '100%', display: 'flex', flexDirection: 'column', flexGrow: 1 } }, inner)}
+            {createElement('div', { style: { zoom, minHeight: `${(100 / zoom).toFixed(4)}dvh`, display: 'flex', flexDirection: 'column', flexGrow: 1 } }, inner)}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -831,13 +831,6 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
   const [checkoutMethod, setCheckoutMethod] = useState<'card' | 'apple' | 'tasheel' | null>(null);
   const [howOpen, setHowOpen] = useState(false);
   const [raffleInfoOpen, setRaffleInfoOpen] = useState(false);
-  const cartCta = (
-    <View style={styles.xCartStickyBar} pointerEvents="auto">
-      <Pressable testID="wc-cart-continue" style={styles.xCartContinue} onPress={() => setRoute('wcMobile')} accessibilityRole="button" accessibilityLabel="Continue with Tasheel Finance">
-        <Text style={styles.xCartContinueText}>Continue with Tasheel Finance</Text>
-      </Pressable>
-    </View>
-  );
   return (
     <AppShell surface="checkout">
       <StatusStrip />
@@ -891,14 +884,12 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
               testID="wc-tasheel-offer"
               accessibilityRole="button"
               accessibilityLabel={offer.aria}
-              onPress={() => setCheckoutMethod('tasheel')}
-              style={[styles.xOfferCard, checkoutMethod === 'tasheel' && styles.xOfferCardSelected]}
+              onPress={() => { setCheckoutMethod('tasheel'); setRoute('wcMobile'); }}
+              style={({ pressed }: { pressed: boolean }) => [styles.xOfferCard, pressed && styles.xOfferCardSelected]}
             >
               <View style={styles.xOfferTopRow}>
                 <Image source={figmaImageSource('wcTasheelLogo')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 88, height: 26 }} />
-                <View style={[styles.xOfferRadio, checkoutMethod === 'tasheel' && styles.xOfferRadioOn]}>
-                  {checkoutMethod === 'tasheel' ? <View style={styles.xOfferRadioDot} /> : null}
-                </View>
+                <Svg width={20} height={20} viewBox="0 0 24 24"><Path d="M9.5 5 16 12l-6.5 7" fill="none" stroke="#8c96a3" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" /></Svg>
               </View>
               <Text style={styles.xOfferTitle}>{offer.title}</Text>
               <Text style={styles.xOfferBody}>{offer.body}</Text>
@@ -959,10 +950,8 @@ function Checkout({ setRoute, offer }: { setRoute: (r: RouteKey) => void; offer:
           </>
         )}
         <SafariCompactBar url="extra.com" />
-        {added && checkoutMethod === 'tasheel' && SHOW_FAKE_CHROME ? cartCta : null}
       </View>
       </ScreenFade>
-      {added && checkoutMethod === 'tasheel' && !SHOW_FAKE_CHROME ? <ViewportLayer>{cartCta}</ViewportLayer> : null}
       {raffleInfoOpen ? <WcRaffleExplainerSheet onClose={() => setRaffleInfoOpen(false)} /> : null}
     </AppShell>
   );
@@ -1009,8 +998,13 @@ function ActionTile({ label, asset, testID, onPress }: { label: string; asset: F
 
 // Escapes RNW's ScrollView containing-block (its identity transform captures any
 // fixed descendant) by portaling viewport-pinned UI to document.body on device.
+// Wide-but-short viewports (phone landscape) would blow the 402pt design up past the
+// screen height, so clamp the zoom by height there. Portrait is unaffected.
+const viewportZoom = (width: number, height: number) => (width > height ? Math.min(width / 402, height / 830) : width / 402);
+
 function ViewportLayer({ children }: { children: React.ReactNode }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const zoom = viewportZoom(width, height);
   useEffect(() => {
     if (SHOW_FAKE_CHROME || typeof document === 'undefined') return;
     return () => {
@@ -1032,7 +1026,7 @@ function ViewportLayer({ children }: { children: React.ReactNode }) {
   // The portal div is pointerEvents:none (taps pass through to the page); wrap children in a
   // box-none View so interactive descendants (buttons, scrims) still receive taps on device.
   return createPortal(
-    createElement('div', { style: { position: 'fixed', inset: 0, zIndex: 1000, zoom: width / 402, pointerEvents: 'none' } },
+    createElement('div', { style: { position: 'fixed', top: 0, left: 0, width: `${(100 / zoom).toFixed(4)}dvw`, height: `${(100 / zoom).toFixed(4)}dvh`, zIndex: 1000, zoom, pointerEvents: 'none' } },
       <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>{children}</View>,
     ),
     document.body,
@@ -1672,6 +1666,10 @@ function WcQuickCall({ setRoute }: { setRoute: (r: RouteKey) => void }) {
 function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
   const rise = useRef(new Animated.Value(0)).current;
   const closing = useRef(false);
+  // Short viewports (landscape, small phones) can't fit the full-size sheet; it is
+  // anchored to the bottom, so anything that doesn't fit falls off the top.
+  const { height: vh, width: vw } = useWindowDimensions();
+  const compact = vh * (402 / Math.max(vw, 1)) < 640;
   useEffect(() => {
     Animated.timing(rise, { toValue: 1, duration: 300, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
   }, [rise]);
@@ -1683,15 +1681,15 @@ function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
   return (
     <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
       <Pressable style={[styles.wcPickerScrim, styles.wcRaffleDim]} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" />
-      <Animated.View testID="wc-raffle-explainer" style={[styles.wcRaffleSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [460, 0] }) }] }]}>
+      <Animated.View testID="wc-raffle-explainer" style={[styles.wcRaffleSheet, compact && styles.wcRaffleSheetCompact, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [460, 0] }) }] }]}>
         <View style={styles.sheetGrabber} />
-        <View style={[styles.wcRaffleSheetContent, { gap: 18 }]}>
-          <View style={{ gap: 12, width: '100%' }}>
-            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleExplainerArt} />
-            <View style={{ gap: 8, width: '100%' }}>
+        <View style={[styles.wcRaffleSheetContent, { gap: compact ? 12 : 18 }]}>
+          <View style={{ gap: compact ? 8 : 12, width: '100%' }}>
+            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={[styles.wcRaffleExplainerArt, compact && styles.wcRaffleArtCompact]} />
+            <View style={{ gap: compact ? 6 : 8, width: '100%' }}>
               <View style={{ width: '100%' }}>
                 <Text style={styles.wcRaffleExplainerKicker}>You could win</Text>
-                <Text style={styles.wcRaffleExplainerTitle}>A Mega Prize!</Text>
+                <Text style={[styles.wcRaffleExplainerTitle, compact && styles.wcRaffleTitleCompact]}>A Mega Prize!</Text>
               </View>
               <Text style={styles.wcRaffleSheetBody}>Complete this purchase to enter the draw for a mega prize, and double your chances with every purchase you make.</Text>
             </View>
@@ -1708,6 +1706,8 @@ function WcRaffleExplainerSheet({ onClose }: { onClose: () => void }) {
 function WcRaffleSheet({ onClose }: { onClose: () => void }) {
   const rise = useRef(new Animated.Value(0)).current;
   const closing = useRef(false);
+  const { height: vh, width: vw } = useWindowDimensions();
+  const compact = vh * (402 / Math.max(vw, 1)) < 680;
   useEffect(() => {
     Animated.timing(rise, { toValue: 1, duration: 300, easing: Easing.bezier(0.32, 0.72, 0, 1), useNativeDriver: true }).start();
   }, [rise]);
@@ -1719,15 +1719,15 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
   return (
     <ViewportLayer><View style={styles.wcPickerOverlay} pointerEvents="auto">
       <Pressable style={[styles.wcPickerScrim, styles.wcRaffleDim]} onPress={dismiss} accessibilityRole="button" accessibilityLabel="Close" />
-      <Animated.View testID="wc-raffle-sheet" style={[styles.wcRaffleSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [420, 0] }) }] }]}>
+      <Animated.View testID="wc-raffle-sheet" style={[styles.wcRaffleSheet, compact && styles.wcRaffleSheetCompact, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [420, 0] }) }] }]}>
         <View style={styles.sheetGrabber} />
-        <View style={styles.wcRaffleSheetContent}>
-          <View style={{ gap: 16, width: '100%' }}>
-            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={styles.wcRaffleSheetArt} />
-            <View style={{ gap: 12, width: '100%' }}>
+        <View style={[styles.wcRaffleSheetContent, compact && { gap: 14 }]}>
+          <View style={{ gap: compact ? 10 : 16, width: '100%' }}>
+            <Image source={figmaImageSource('wcRaffleBoxSheet')} resizeMode="contain" accessibilityIgnoresInvertColors style={[styles.wcRaffleSheetArt, compact && styles.wcRaffleArtCompact]} />
+            <View style={{ gap: compact ? 8 : 12, width: '100%' }}>
               <View style={{ width: '100%' }}>
                 <Text style={styles.wcRaffleSheetKicker}>Your Purchase</Text>
-                <Text style={styles.wcRaffleSheetTitle}>Could Be Free!</Text>
+                <Text style={[styles.wcRaffleSheetTitle, compact && styles.wcRaffleTitleCompact]}>Could Be Free!</Text>
               </View>
               <View style={{ width: '100%' }}>
                 <Text style={styles.wcRaffleSheetBody}>Complete this purchase to enter the draw for a mega prize, and double your chances with every purchase you make.</Text>
@@ -1749,6 +1749,9 @@ function WcRaffleSheet({ onClose }: { onClose: () => void }) {
 function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: RouteKey) => void; months: number; setMonths: (m: number) => void; nextRoute: RouteKey }) {
   const [sheet, setSheet] = useState<null | 'details' | 'schedule' | 'cart' | 'fee'>(null);
   const [picked, setPicked] = useState(false);
+  // Tapping the grabber tucks the benefits away so the plan list is readable again;
+  // the actions stay docked so the user can still confirm from the collapsed sheet.
+  const [benefitsCollapsed, setBenefitsCollapsed] = useState(false);
   const [leavePromptOpen, setLeavePromptOpen] = useState(false);
   const [raffleOpen, setRaffleOpen] = useState(!wcRaffleIntroSeen && wcActiveFlow === 'existing');
   const rise = useRef(new Animated.Value(0)).current;
@@ -1784,6 +1787,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
     }
     setMonths(m);
     scrollToPlan(m);
+    setBenefitsCollapsed(false);
     if (!picked) {
       setPicked(true);
       rise.setValue(0);
@@ -1919,12 +1923,24 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
         {picked && !leavePromptOpen && !raffleOpen ? (
           <ViewportLayer>
             <View style={styles.wcBenefitLayer} pointerEvents="box-none">
-              <Animated.View style={[styles.wcBenefitSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
-                <View style={styles.sheetGrabber} />
+              <Animated.View style={[styles.wcBenefitSheet, benefitsCollapsed && styles.wcBenefitSheetCollapsed, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
+                <Pressable
+                  testID="wc-benefit-grabber"
+                  onPress={() => setBenefitsCollapsed(v => !v)}
+                  hitSlop={14}
+                  style={styles.wcBenefitGrabberHit}
+                  accessibilityRole="button"
+                  accessibilityLabel={benefitsCollapsed ? 'Show plan benefits' : 'Hide plan benefits'}
+                >
+                  <View style={styles.sheetGrabber} />
+                </Pressable>
+                {benefitsCollapsed ? null : (
                 <View style={styles.wcBenefitTitleRow}>
                   <Text style={styles.wcBenefitTitle}>Your plan benefits</Text>
                   <View style={styles.wcBenefitPlanChip}><Text style={styles.wcBenefitPlanChipText}>{months} Payments</Text></View>
                 </View>
+                )}
+                {benefitsCollapsed ? null : (
                 <View style={styles.wcBenefitBox}>
                   <View style={styles.wcBenefitShariaTag} pointerEvents="none">
                     <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
@@ -1958,6 +1974,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     </>
                   )}
                 </View>
+                )}
                 <View style={styles.wcBenefitButtons}>
                   <Pressable testID="wc-plan-details" style={[styles.wcGreyCta, { flex: 1, width: undefined }]} onPress={() => setSheet('details')} accessibilityRole="button">
                     <Text style={styles.wcGreyCtaText}>View details</Text>
@@ -2881,11 +2898,11 @@ function SaTabBar({ active, onTab, onSearch }: { active: string; onTab: (t: stri
 
 // Pins a full-phone overlay to the visual viewport (search, etc.) regardless of scroll.
 function SaPhoneOverlay({ children }: { children: React.ReactNode }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   if (typeof document === 'undefined') return <>{children}</>;
-  const zoom = SHOW_FAKE_CHROME ? 1 : width / 402;
+  const zoom = SHOW_FAKE_CHROME ? 1 : viewportZoom(width, height);
   return createPortal(
-    createElement('div', { style: { position: 'fixed', top: 0, bottom: 0, left: '50%', transform: 'translateX(-50%)', width: 402, zoom, zIndex: 1100, background: '#ffffff', display: 'flex', flexDirection: 'column', overflow: 'hidden' } }, children),
+    createElement('div', { style: { position: 'fixed', top: 0, height: `${(100 / zoom).toFixed(4)}dvh`, left: '50%', transform: 'translateX(-50%)', width: 402, zoom, zIndex: 1100, background: '#ffffff', display: 'flex', flexDirection: 'column', overflow: 'hidden' } }, children),
     document.body,
   );
 }
@@ -3213,7 +3230,8 @@ function SaHeroSlide({ ad, width }: { ad: HeroAd; width: number }) {
 
 // Payment-method action sheet shown as an overlay over the homepage (no route change).
 function SaPaymentSheet({ amount, method, setMethod, setRoute, onClose }: { amount: number; method: PayMethod; setMethod: (m: PayMethod) => void; setRoute: (r: RouteKey) => void; onClose: () => void }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
+  const zoom = viewportZoom(width, height);
   const sheetMotion = useRef(new Animated.Value(0)).current;
   const [selected, setSelected] = useState(false);
   useEffect(() => {
@@ -3261,7 +3279,7 @@ function SaPaymentSheet({ amount, method, setMethod, setRoute, onClose }: { amou
     );
   }
   return createPortal(
-    createElement('div', { style: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000, zoom: width / 402, pointerEvents: 'auto' } }, content),
+    createElement('div', { style: { position: 'fixed', top: 0, left: 0, width: `${(100 / zoom).toFixed(4)}dvw`, height: `${(100 / zoom).toFixed(4)}dvh`, zIndex: 1000, zoom, pointerEvents: 'auto' } }, content),
     document.body,
   );
 }
@@ -4934,6 +4952,9 @@ const styles = StyleSheet.create({
   wcRaffleDim: { backgroundColor: 'rgba(0,0,0,0.6)' },
   wcRaffleSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: canvas, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingTop: 5, paddingHorizontal: 16, paddingBottom: 104, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 37.5, shadowOffset: { width: 0, height: -15 } },
   wcRaffleSheetContent: { width: '100%', gap: 24, alignItems: 'flex-start' },
+  wcRaffleSheetCompact: { bottom: -56, paddingBottom: 74 },
+  wcRaffleArtCompact: { width: 64, height: 55 },
+  wcRaffleTitleCompact: { fontSize: 24, lineHeight: 30 },
   wcRaffleSheetArt: { width: 117, height: 100, transform: [{ scaleX: -1 }] },
   wcRaffleSheetCta: { width: '100%' },
   wcRaffleExplainerArt: { width: 92, height: 79, transform: [{ scaleX: -1 }] },
@@ -5707,6 +5728,8 @@ const styles = StyleSheet.create({
   wcPlanPrice: { fontSize: 22, lineHeight: 28, fontWeight: '700', color: text, letterSpacing: 0.2 },
   wcPlanPriceUnit: { fontSize: 15, lineHeight: 22, color: muted, letterSpacing: -0.3, marginLeft: 1 },
   wcBenefitLayer: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 30 },
+  wcBenefitSheetCollapsed: { paddingTop: 2, gap: 8 },
+  wcBenefitGrabberHit: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 6 },
   wcBenefitSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 108, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
   wcBenefitTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcBenefitTitle: { fontSize: 17, lineHeight: 24, fontWeight: '600', color: text, letterSpacing: -0.41 },
