@@ -2027,31 +2027,26 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                 ) : null}
                 {cartVariant === 'sheet' || cartVariant === 'both' ? <View style={styles.wcBenefitDivider} /> : null}
                 <View style={styles.wcBenefitHeadBlock}>
-                  <View style={styles.wcBenefitHeadCopy}>
-                    <Text style={styles.wcBenefitTitle}>Your plan benefits ({months})</Text>
-                    <View style={styles.wcBenefitTagRow}>
-                      <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
-                      <Text style={styles.wcBenefitTagText}>{benefitLine}</Text>
-                    </View>
+                  <View style={styles.wcBenefitTagRow}>
+                    <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
+                    <Text style={styles.wcBenefitTagText}>{benefitLine}</Text>
                   </View>
-                  <View style={[styles.wcBenefitTagRow, { paddingTop: 3 }]}>
+                  <View style={styles.wcBenefitTagRow}>
                     <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
-                    <Text style={styles.wcBenefitTagText}>Sharia compliant</Text>
+                    <Text style={styles.wcBenefitTagTextMuted}>Sharia compliant</Text>
                   </View>
                 </View>
                 <View style={styles.wcBenefitFactsRow}>
                   <View>
                     <Text style={styles.wcBenefitFactLabel}>{wcDownFor(months) > 0 ? 'Down payment today' : 'Due today'}</Text>
-                    <Money amount={wcMoney(wcPlanToday(months))} size={22} weight="700" />
+                    <Money amount={wcMoney(wcPlanToday(months))} size={28} weight="700" />
                   </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Text style={styles.wcBenefitFactLabel}>{wcPlanFee(months) > 0 ? 'Processing fee' : 'Interest'}</Text>
-                    {wcPlanFee(months) > 0 ? (
-                      <Money amount={wcMoney(wcPlanFee(months))} size={18} weight="700" />
-                    ) : (
-                      <Text style={styles.wcBenefitFactValue}>0%</Text>
-                    )}
-                  </View>
+                  {wcPlanFee(months) > 0 ? (
+                    <View style={{ alignItems: 'flex-end', justifyContent: 'flex-end' }}>
+                      <Text style={styles.wcBenefitFactLabel}>Processing fee</Text>
+                      <Money amount={wcMoney(wcPlanFee(months))} size={15} weight="600" color={muted} />
+                    </View>
+                  ) : null}
                 </View>
                 </View>
                 </Animated.View>
@@ -5818,6 +5813,7 @@ const styles = StyleSheet.create({
   wcBenefitHeadCopy: { flex: 1, gap: 6 },
   wcBenefitTagRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   wcBenefitTagText: { fontSize: 13, lineHeight: 16, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
+  wcBenefitTagTextMuted: { fontSize: 13, lineHeight: 16, fontWeight: '500', color: muted, letterSpacing: -0.08 },
   wcSheetCartRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 2 },
   wcDockBar: { position: 'absolute', top: -46, left: 0, right: 0, height: 58, borderTopLeftRadius: 26, borderTopRightRadius: 26, backgroundColor: '#e9edf2', paddingHorizontal: 20, paddingTop: 11, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
   wcDockBarDeal: { backgroundColor: '#d9f8e2' },
@@ -5827,7 +5823,7 @@ const styles = StyleSheet.create({
   wcSheetCartRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   wcSheetCartItemsText: { fontSize: 14, lineHeight: 18, color: muted, letterSpacing: -0.15 },
   wcBenefitDivider: { height: 1, backgroundColor: '#e8ecf1', width: '100%' },
-  wcBenefitFactsRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' },
+  wcBenefitFactsRow: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', width: '100%' },
   wcBenefitFactLabel: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08, marginBottom: 4 },
   wcBenefitFactValue: { fontSize: 18, lineHeight: 24, fontWeight: '700', color: text, letterSpacing: -0.4 },
   wcVariantBar: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 2 },
