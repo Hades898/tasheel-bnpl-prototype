@@ -1977,36 +1977,41 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                       <Image source={figmaImageSource('wcSaleTagGreen')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
                       <Text style={styles.wcBenefitTagText}>{benefitLine}</Text>
                     </View>
-                    <View style={styles.wcBenefitTagRow}>
-                      <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
-                      <Text style={styles.wcBenefitTagText}>Sharia compliant</Text>
-                    </View>
                   </View>
-                  {cartVariant !== 'pill' ? (
-                    <Pressable
-                      testID="wc-sheet-cart"
-                      onPress={() => setSheet('cart')}
-                      style={styles.wcSheetCart}
-                      accessibilityRole="button"
-                      accessibilityLabel="View cart details"
-                    >
-                      <View style={styles.wcSheetCartTop}>
-                        <View style={styles.wcSheetCartIcon}>
-                          <Image source={figmaImageSource('wcCartIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
-                        </View>
-                        <Text style={styles.wcSheetCartItems}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
-                      </View>
-                      <View style={styles.wcSheetCartBottom}>
-                        {wcDiscountAmountFor(months) > 0 ? (
-                          <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>{wcDiscountPctFor(months)}% off</Text></View>
-                        ) : null}
-                        <Money amount={wcMoney(wcOrderTotalFor(months))} size={18} weight="700" />
-                        <Image source={figmaImageSource('wcArrowRight')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 13, height: 13 }} />
-                      </View>
-                    </Pressable>
-                  ) : null}
+                  <View style={[styles.wcBenefitTagRow, { paddingTop: 3 }]}>
+                    <Image source={figmaImageSource('wcShariaIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 14, height: 14 }} />
+                    <Text style={styles.wcBenefitTagText}>Sharia compliant</Text>
+                  </View>
                 </View>
-                <View style={styles.wcBenefitDivider} />
+                {cartVariant !== 'pill' ? (
+                  <Pressable
+                    testID="wc-sheet-cart"
+                    onPress={() => setSheet('cart')}
+                    style={[styles.wcSheetCartStrip, wcDiscountAmountFor(months) > 0 && styles.wcSheetCartStripDeal]}
+                    accessibilityRole="button"
+                    accessibilityLabel={wcDiscountAmountFor(months) > 0
+                      ? `Cart total ${wcMoney(wcOrderTotalFor(months))} after ${wcDiscountPctFor(months)} percent discount, view details`
+                      : 'View cart details'}
+                  >
+                    <View style={styles.wcSheetCartLeft}>
+                      <Image source={figmaImageSource('wcCartIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 16, height: 16 }} />
+                      {wcDiscountAmountFor(months) > 0 ? (
+                        <Text style={styles.wcSheetCartSave}>You save <Riyal size={11} color={greenMid} /> {formatAmount(Math.round(wcDiscountAmountFor(months)))}</Text>
+                      ) : (
+                        <Text style={styles.wcSheetCartItemsText}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
+                      )}
+                    </View>
+                    <View style={styles.wcSheetCartRight}>
+                      {wcDiscountAmountFor(months) > 0 ? (
+                        <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(wcCartTotalNow()))}</Text>
+                      ) : null}
+                      <Money amount={wcMoney(wcOrderTotalFor(months))} size={16} weight="700" />
+                      <Image source={figmaImageSource('wcArrowRight')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 13, height: 13 }} />
+                    </View>
+                  </Pressable>
+                ) : (
+                  <View style={styles.wcBenefitDivider} />
+                )}
                 <View style={styles.wcBenefitFactsRow}>
                   <View>
                     <Text style={styles.wcBenefitFactLabel}>{wcDownFor(months) > 0 ? 'Down payment today' : 'Due today'}</Text>
@@ -5782,14 +5787,16 @@ const styles = StyleSheet.create({
   wcBenefitSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 108, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
   wcBenefitTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcBenefitHeadBlock: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, width: '100%' },
+  wcBenefitHeadRule: { height: 1, backgroundColor: '#e8ecf1', width: '100%' },
   wcBenefitHeadCopy: { flex: 1, gap: 6 },
   wcBenefitTagRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   wcBenefitTagText: { fontSize: 13, lineHeight: 16, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
-  wcSheetCart: { alignItems: 'flex-end', gap: 7, paddingTop: 2 },
-  wcSheetCartTop: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  wcSheetCartIcon: { width: 26, height: 26, borderRadius: 9, backgroundColor: '#f2f4f7', alignItems: 'center', justifyContent: 'center' },
-  wcSheetCartItems: { fontSize: 13, lineHeight: 16, fontWeight: '600', color: muted, letterSpacing: -0.08 },
-  wcSheetCartBottom: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  wcSheetCartStrip: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f2f4f7', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
+  wcSheetCartStripDeal: { backgroundColor: '#e5ffed' },
+  wcSheetCartLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  wcSheetCartRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  wcSheetCartItemsText: { fontSize: 14, lineHeight: 18, color: text, letterSpacing: -0.15 },
+  wcSheetCartSave: { fontSize: 14, lineHeight: 18, fontWeight: '700', color: greenMid, letterSpacing: -0.15 },
   wcBenefitDivider: { height: 1, backgroundColor: '#e8ecf1', width: '100%' },
   wcBenefitFactsRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' },
   wcBenefitFactLabel: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08, marginBottom: 4 },
