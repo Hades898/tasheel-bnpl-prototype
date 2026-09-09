@@ -1766,8 +1766,9 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
   const [cartVariant, setCartVariant] = useState<'sheet' | 'pill' | 'both'>('sheet');
   const [raffleOpen, setRaffleOpen] = useState(!wcRaffleIntroSeen && wcActiveFlow === 'existing');
   // One green line carries the plan's actual benefit; fees live in their own cell below.
+  // On discounted plans the saving leads — that line, not the cart total, is the offer.
   const benefitLine = wcDiscountAmountFor(months) > 0
-    ? `${wcDiscountPctFor(months)}% discount applied`
+    ? <>You save <Riyal size={12} color={greenMid} /> {formatAmount(Math.round(wcDiscountAmountFor(months)))} with {wcDiscountPctFor(months)}% off</>
     : wcPlanFee(months) === 0 && wcPlanApr(months) === 0
     ? 'Zero fees & interest plan'
     : '0% interest plan';
@@ -1970,6 +1971,35 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                   ]}
                 >
                 <View onLayout={e => setBenefitsHeight(e.nativeEvent.layout.height)} style={styles.wcBenefitCollapsibleInner}>
+                {cartVariant !== 'pill' ? (
+                  <Pressable
+                    testID="wc-sheet-cart"
+                    onPress={() => setSheet('cart')}
+                    style={styles.wcSheetCartRow}
+                    accessibilityRole="button"
+                    accessibilityLabel={wcDiscountAmountFor(months) > 0
+                      ? `Cart total ${wcMoney(wcOrderTotalFor(months))} after ${wcDiscountPctFor(months)} percent discount, view details`
+                      : 'View cart details'}
+                  >
+                    <View style={styles.wcSheetCartLeft}>
+                      <View style={styles.wcSheetCartTile}>
+                        <Image source={figmaImageSource('wcCartIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                      </View>
+                      <Text style={styles.wcSheetCartItemsText}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
+                    </View>
+                    <View style={styles.wcSheetCartRight}>
+                      {wcDiscountAmountFor(months) > 0 ? (
+                        <>
+                          <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>−{wcDiscountPctFor(months)}%</Text></View>
+                          <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(wcCartTotalNow()))}</Text>
+                        </>
+                      ) : null}
+                      <Money amount={wcMoney(wcOrderTotalFor(months))} size={15} weight="600" />
+                      <Image source={figmaImageSource('wcArrowRight')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 12, height: 12 }} />
+                    </View>
+                  </Pressable>
+                ) : null}
+                <View style={styles.wcBenefitDivider} />
                 <View style={styles.wcBenefitHeadBlock}>
                   <View style={styles.wcBenefitHeadCopy}>
                     <Text style={styles.wcBenefitTitle}>Your plan benefits ({months})</Text>
@@ -1983,35 +2013,6 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     <Text style={styles.wcBenefitTagText}>Sharia compliant</Text>
                   </View>
                 </View>
-                {cartVariant !== 'pill' ? (
-                  <Pressable
-                    testID="wc-sheet-cart"
-                    onPress={() => setSheet('cart')}
-                    style={[styles.wcSheetCartStrip, wcDiscountAmountFor(months) > 0 && styles.wcSheetCartStripDeal]}
-                    accessibilityRole="button"
-                    accessibilityLabel={wcDiscountAmountFor(months) > 0
-                      ? `Cart total ${wcMoney(wcOrderTotalFor(months))} after ${wcDiscountPctFor(months)} percent discount, view details`
-                      : 'View cart details'}
-                  >
-                    <View style={styles.wcSheetCartLeft}>
-                      <Image source={figmaImageSource('wcCartIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 16, height: 16 }} />
-                      {wcDiscountAmountFor(months) > 0 ? (
-                        <Text style={styles.wcSheetCartSave}>You save <Riyal size={11} color={greenMid} /> {formatAmount(Math.round(wcDiscountAmountFor(months)))}</Text>
-                      ) : (
-                        <Text style={styles.wcSheetCartItemsText}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
-                      )}
-                    </View>
-                    <View style={styles.wcSheetCartRight}>
-                      {wcDiscountAmountFor(months) > 0 ? (
-                        <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(wcCartTotalNow()))}</Text>
-                      ) : null}
-                      <Money amount={wcMoney(wcOrderTotalFor(months))} size={16} weight="700" />
-                      <Image source={figmaImageSource('wcArrowRight')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 13, height: 13 }} />
-                    </View>
-                  </Pressable>
-                ) : (
-                  <View style={styles.wcBenefitDivider} />
-                )}
                 <View style={styles.wcBenefitFactsRow}>
                   <View>
                     <Text style={styles.wcBenefitFactLabel}>{wcDownFor(months) > 0 ? 'Down payment today' : 'Due today'}</Text>
@@ -5791,12 +5792,11 @@ const styles = StyleSheet.create({
   wcBenefitHeadCopy: { flex: 1, gap: 6 },
   wcBenefitTagRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   wcBenefitTagText: { fontSize: 13, lineHeight: 16, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
-  wcSheetCartStrip: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#f2f4f7', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 10 },
-  wcSheetCartStripDeal: { backgroundColor: '#e5ffed' },
+  wcSheetCartRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 2 },
+  wcSheetCartTile: { width: 28, height: 28, borderRadius: 10, backgroundColor: '#f2f4f7', alignItems: 'center', justifyContent: 'center' },
   wcSheetCartLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   wcSheetCartRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  wcSheetCartItemsText: { fontSize: 14, lineHeight: 18, color: text, letterSpacing: -0.15 },
-  wcSheetCartSave: { fontSize: 14, lineHeight: 18, fontWeight: '700', color: greenMid, letterSpacing: -0.15 },
+  wcSheetCartItemsText: { fontSize: 14, lineHeight: 18, color: muted, letterSpacing: -0.15 },
   wcBenefitDivider: { height: 1, backgroundColor: '#e8ecf1', width: '100%' },
   wcBenefitFactsRow: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', width: '100%' },
   wcBenefitFactLabel: { fontSize: 13, lineHeight: 18, color: muted, letterSpacing: -0.08, marginBottom: 4 },
