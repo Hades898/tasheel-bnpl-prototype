@@ -1763,7 +1763,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
   const [leavePromptOpen, setLeavePromptOpen] = useState(false);
   // Exploration switch: where the cart lives on this screen — inside the benefits
   // sheet (Figma 5946:118630), as the header pill, or both.
-  const [cartVariant, setCartVariant] = useState<'sheet' | 'pill' | 'both'>('sheet');
+  const [cartVariant, setCartVariant] = useState<'sheet' | 'pill' | 'both' | 'dock'>('sheet');
   const [raffleOpen, setRaffleOpen] = useState(!wcRaffleIntroSeen && wcActiveFlow === 'existing');
   // One green line carries the plan's actual benefit; fees live in their own cell below.
   // On discounted plans the saving leads — that line, not the cart total, is the offer.
@@ -1821,7 +1821,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
             <Animated.View style={[styles.wcCondenseRow, condenseStyle]}>
               <View style={styles.wcCondenseInner}>
                 <Text style={styles.wcCondenseLabel}>Choose how to split</Text>
-                <View style={[styles.wcCartRight, cartVariant === 'sheet' && { opacity: 0 }]}>
+                <View style={[styles.wcCartRight, (cartVariant === 'sheet' || cartVariant === 'dock') && { opacity: 0 }]}>
                   {picked && wcDiscountAmountFor(months) > 0 ? (
                     <>
                       <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>{wcDiscountPctFor(months)}% off</Text></View>
@@ -1845,13 +1845,13 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
           >
             <View style={styles.wcVariantBar}>
               <Text style={styles.wcVariantLabel}>Cart</Text>
-              {([['sheet', 'In sheet'], ['pill', 'Top pill'], ['both', 'Both']] as const).map(([v, label]) => (
+              {([['sheet', 'In sheet'], ['dock', 'Docked'], ['pill', 'Top pill'], ['both', 'Both']] as const).map(([v, label]) => (
                 <Pressable key={v} testID={`wc-cart-variant-${v}`} onPress={() => setCartVariant(v)} style={[styles.wcVariantChip, cartVariant === v && styles.wcVariantChipOn]} accessibilityRole="button" accessibilityLabel={`Cart view: ${label}`}>
                   <Text style={[styles.wcVariantChipText, cartVariant === v && styles.wcVariantChipTextOn]}>{label}</Text>
                 </Pressable>
               ))}
             </View>
-            {cartVariant !== 'sheet' ? (
+            {cartVariant === 'pill' || cartVariant === 'both' ? (
             <Pressable testID="wc-cart-pill" style={styles.wcCartPill} onPress={() => setSheet('cart')} accessibilityRole="button" accessibilityLabel="View cart details">
               <View style={styles.wcCartLeft}>
                 <Image source={figmaImageSource('wcCartIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 16, height: 16 }} />
@@ -1953,6 +1953,32 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
           <ViewportLayer>
             <View style={styles.wcBenefitLayer} pointerEvents="box-none">
               <Animated.View style={[styles.wcBenefitSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
+                {cartVariant === 'dock' ? (
+                  <Pressable
+                    testID="wc-dock-cart"
+                    onPress={() => setSheet('cart')}
+                    style={[styles.wcDockBar, wcDiscountAmountFor(months) > 0 && styles.wcDockBarDeal]}
+                    accessibilityRole="button"
+                    accessibilityLabel={wcDiscountAmountFor(months) > 0
+                      ? `Cart total ${wcMoney(wcOrderTotalFor(months))} after ${wcDiscountPctFor(months)} percent discount, view details`
+                      : 'View cart details'}
+                  >
+                    <View style={styles.wcSheetCartLeft}>
+                      <Image source={figmaImageSource('wcCartIcon')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 15, height: 15 }} />
+                      <Text style={styles.wcDockItems}>{WC_CART_ITEMS} {WC_CART_ITEMS === 1 ? 'Item' : 'Items'}</Text>
+                    </View>
+                    <View style={styles.wcSheetCartRight}>
+                      {wcDiscountAmountFor(months) > 0 ? (
+                        <>
+                          <View style={styles.wcCartDiscountChip}><Text style={styles.wcCartDiscountChipText}>−{wcDiscountPctFor(months)}%</Text></View>
+                          <Text style={styles.wcCartWasPrice}>{formatAmount(Math.round(wcCartTotalNow()))}</Text>
+                        </>
+                      ) : null}
+                      <Money amount={wcMoney(wcOrderTotalFor(months))} size={15} weight="600" />
+                      <Image source={figmaImageSource('wcArrowRight')} resizeMode="contain" accessibilityIgnoresInvertColors style={{ width: 12, height: 12 }} />
+                    </View>
+                  </Pressable>
+                ) : null}
                 <Pressable
                   testID="wc-benefit-grabber"
                   onPress={toggleBenefits}
@@ -1971,7 +1997,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                   ]}
                 >
                 <View onLayout={e => setBenefitsHeight(e.nativeEvent.layout.height)} style={styles.wcBenefitCollapsibleInner}>
-                {cartVariant !== 'pill' ? (
+                {cartVariant === 'sheet' || cartVariant === 'both' ? (
                   <Pressable
                     testID="wc-sheet-cart"
                     onPress={() => setSheet('cart')}
@@ -1999,7 +2025,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     </View>
                   </Pressable>
                 ) : null}
-                <View style={styles.wcBenefitDivider} />
+                {cartVariant === 'sheet' || cartVariant === 'both' ? <View style={styles.wcBenefitDivider} /> : null}
                 <View style={styles.wcBenefitHeadBlock}>
                   <View style={styles.wcBenefitHeadCopy}>
                     <Text style={styles.wcBenefitTitle}>Your plan benefits ({months})</Text>
@@ -5793,6 +5819,9 @@ const styles = StyleSheet.create({
   wcBenefitTagRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   wcBenefitTagText: { fontSize: 13, lineHeight: 16, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
   wcSheetCartRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 2 },
+  wcDockBar: { position: 'absolute', top: -46, left: 0, right: 0, height: 58, borderTopLeftRadius: 26, borderTopRightRadius: 26, backgroundColor: '#e9edf2', paddingHorizontal: 20, paddingTop: 11, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  wcDockBarDeal: { backgroundColor: '#d9f8e2' },
+  wcDockItems: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: text, letterSpacing: -0.15 },
   wcSheetCartTile: { width: 28, height: 28, borderRadius: 10, backgroundColor: '#f2f4f7', alignItems: 'center', justifyContent: 'center' },
   wcSheetCartLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   wcSheetCartRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
