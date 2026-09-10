@@ -1862,7 +1862,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
           <Animated.ScrollView
             ref={scrollRef as React.Ref<ScrollView>}
             style={{ flex: 1 }}
-            contentContainerStyle={[styles.wcTenureContent, { paddingBottom: picked ? 250 : 40 }]}
+            contentContainerStyle={[styles.wcTenureContent, { paddingBottom: picked ? 300 : 40 }]}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={16}
             onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: false })}
@@ -5795,7 +5795,7 @@ const styles = StyleSheet.create({
   wcBenefitTagText: { fontSize: 13, lineHeight: 16, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
   wcBenefitTagTextMuted: { fontSize: 13, lineHeight: 16, fontWeight: '500', color: muted, letterSpacing: -0.08 },
   wcSheetCartRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 2 },
-  wcDockBar: { position: 'absolute', top: -46, left: 0, right: 0, height: 58, borderTopLeftRadius: 26, borderTopRightRadius: 26, backgroundColor: '#e8f0fe', paddingHorizontal: 20, paddingTop: 11, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  wcDockBar: { position: 'absolute', top: -44, left: 0, right: 0, height: 44, borderTopLeftRadius: 22, borderTopRightRadius: 22, backgroundColor: '#e8f0fe', paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcDockItems: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: '#1a4fc4', letterSpacing: -0.15 },
   wcDockWasPrice: { fontSize: 13, lineHeight: 18, color: '#7d95c9', letterSpacing: -0.08, textDecorationLine: 'line-through' },
   wcHeaderCartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 2 },
