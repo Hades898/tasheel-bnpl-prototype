@@ -1956,7 +1956,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
         {picked && !leavePromptOpen && !raffleOpen ? (
           <ViewportLayer>
             <View style={styles.wcBenefitLayer} pointerEvents="box-none">
-              <Animated.View style={[styles.wcBenefitSheet, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
+              <Animated.View pointerEvents="box-none" style={[styles.wcBenefitWrap, { transform: [{ translateY: rise.interpolate({ inputRange: [0, 1], outputRange: [280, 0] }) }] }]}>
                 {cartVariant === 'dock' ? (
                   <Pressable
                     testID="wc-dock-cart"
@@ -1983,6 +1983,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                     </View>
                   </Pressable>
                 ) : null}
+                <View style={styles.wcBenefitSheet}>
                 <Pressable
                   testID="wc-benefit-grabber"
                   onPress={toggleBenefits}
@@ -2037,6 +2038,7 @@ function WcTenure({ setRoute, months, setMonths, nextRoute }: { setRoute: (r: Ro
                   <Pressable testID="wc-plan-continue" style={[styles.wcGreenCta, { flex: 1 }]} onPress={() => setRoute(nextRoute)} accessibilityRole="button">
                     <Text style={styles.wcGreenCtaText}>Confirm plan</Text>
                   </Pressable>
+                </View>
                 </View>
               </Animated.View>
             </View>
@@ -5786,7 +5788,8 @@ const styles = StyleSheet.create({
   wcBenefitCollapsible: { width: '100%', overflow: 'hidden' },
   wcBenefitCollapsibleInner: { width: '100%', gap: 12, paddingBottom: 12 },
   wcBenefitGrabberHit: { alignSelf: 'stretch', alignItems: 'center', paddingVertical: 6 },
-  wcBenefitSheet: { position: 'absolute', left: 0, right: 0, bottom: -80, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 108, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
+  wcBenefitWrap: { position: 'absolute', left: 0, right: 0, bottom: -80 },
+  wcBenefitSheet: { marginTop: -16, backgroundColor: surface, borderTopLeftRadius: 38, borderTopRightRadius: 38, paddingHorizontal: 16, paddingTop: 6, paddingBottom: 108, gap: 12, shadowColor: '#000', shadowOpacity: 0.18, shadowRadius: 38, shadowOffset: { width: 0, height: -15 } },
   wcBenefitTitleRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcBenefitHeadBlock: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, width: '100%' },
   wcBenefitHeadRule: { height: 1, backgroundColor: '#e8ecf1', width: '100%' },
@@ -5795,7 +5798,7 @@ const styles = StyleSheet.create({
   wcBenefitTagText: { fontSize: 13, lineHeight: 16, fontWeight: '600', color: greenMid, letterSpacing: -0.08 },
   wcBenefitTagTextMuted: { fontSize: 13, lineHeight: 16, fontWeight: '500', color: muted, letterSpacing: -0.08 },
   wcSheetCartRow: { width: '100%', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 2 },
-  wcDockBar: { position: 'absolute', top: -44, left: 0, right: 0, height: 44, borderTopLeftRadius: 22, borderTopRightRadius: 22, backgroundColor: '#e8f0fe', paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  wcDockBar: { height: 60, borderTopLeftRadius: 22, borderTopRightRadius: 22, backgroundColor: '#e8f0fe', paddingHorizontal: 20, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   wcDockItems: { fontSize: 14, lineHeight: 20, fontWeight: '600', color: '#1a4fc4', letterSpacing: -0.15 },
   wcDockWasPrice: { fontSize: 13, lineHeight: 18, color: '#7d95c9', letterSpacing: -0.08, textDecorationLine: 'line-through' },
   wcHeaderCartRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingTop: 10, paddingBottom: 2 },
